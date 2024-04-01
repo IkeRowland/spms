@@ -308,6 +308,71 @@ const ResultPage = () => {
       </section>
       {/* For the lecturer end */}
       {/* For the student start */}
+      <section className='bg-slate-100 shadow-sm p-4'>
+        <div className='flex flex-col items-center bg-white p-4'>
+          <h3 className='text-gray-600 uppercase'>WAMAE JOSEPH NDIRITU</h3>
+          <h6 className='text-gray-600 uppercase'>FACULTY OF EDUCATION</h6>
+          <h6 className='text-gray-600 uppercase'>
+            Bachelor of Education (ICT)
+          </h6>
+          <table className='w-max my-3 text-gray-600 border border-collapse border-gray-300'>
+            <thead>
+              <tr>
+                <th className='border border-gray-300 p-2 text-left'>S/NO</th>
+                <th className='border border-gray-300 p-2 text-left'>
+                  Course Code
+                </th>
+                <th className='border border-gray-300 p-2 text-left'>
+                  Course Name
+                </th>
+                <th className='border border-gray-300 p-2 text-left'>Grade</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className='border border-gray-300 p-2'>1</td>
+                <td className='border border-gray-300 p-2'>ICS 113</td>
+                <td className='border border-gray-300 p-2'>
+                  Introduction to Programming
+                </td>
+                <td className='border border-gray-300 p-2'>A</td>
+              </tr>
+              <tr>
+                <td className='border border-gray-300 p-2'>2</td>
+                <td className='border border-gray-300 p-2'>ICS 230</td>
+                <td className='border border-gray-300 p-2'>
+                  Operating Systems
+                </td>
+                <td className='border border-gray-300 p-2'>A</td>
+              </tr>
+              <tr>
+                <td className='border border-gray-300 p-2'>3</td>
+                <td className='border border-gray-300 p-2'>ICS 116</td>
+                <td className='border border-gray-300 p-2'>
+                  Introduction to Database
+                </td>
+                <td className='border border-gray-300 p-2'>A</td>
+              </tr>
+              <tr>
+                <td className='border border-gray-300 p-2'>4</td>
+                <td className='border border-gray-300 p-2'>ICS 217</td>
+                <td className='border border-gray-300 p-2'>
+                  Digital Electronics
+                </td>
+                <td className='border border-gray-300 p-2'>B</td>
+              </tr>
+              <tr>
+                <td className='border border-gray-300 p-2'>5</td>
+                <td className='border border-gray-300 p-2'>ICS 115</td>
+                <td className='border border-gray-300 p-2'>
+                  Discrete Mathematics
+                </td>
+                <td className='border border-gray-300 p-2'>B</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
       {/* For the student end */}
     </>
   );

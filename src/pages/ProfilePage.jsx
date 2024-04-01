@@ -1,7 +1,5 @@
 const ProfilePage = () => {
-  return (
-    <div>ProfilePage</div>
-  )
-}
+  return <div>{/* <img src="/assets" */}</div>;
+};
 
-export default ProfilePage
+export default ProfilePage;

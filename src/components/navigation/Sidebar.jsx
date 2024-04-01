@@ -47,7 +47,7 @@ const Sidebar = () => {
           </li>
           <li className='my-1'>
             <NavLink
-              to='/exams'
+              to='/students'
               className={({ isActive }) =>
                 isActive
                   ? "flex gap-3 p-2 bg-gray-200 text-gray-900"
@@ -55,7 +55,7 @@ const Sidebar = () => {
               }
             >
               <QuizIcon />
-              <h6>Exams</h6>
+              <h6>Students</h6>
             </NavLink>
           </li>
           <li className='my-1'>

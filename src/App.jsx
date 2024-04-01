@@ -6,9 +6,9 @@ import ResetPassPage from "./pages/ResetPassPage";
 import DashboardLayout from "./components/Layout";
 import ProfilePage from "./pages/ProfilePage";
 import ResultPage from "./pages/ResultPage";
-import ExamsPage from "./pages/ExamsPage";
 import CoursePage from "./pages/CoursePage";
 import FeedbackPage from "./pages/FeedbackPage";
+import StudentsPage from "./pages/StudentsPage";
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
           <Route path='/' element={<HomePage />} />
           <Route path='/profile' element={<ProfilePage />} />
           <Route path='/results' element={<ResultPage />} />
-          <Route path='/exams' element={<ExamsPage />} />
+          <Route path='/students' element={<StudentsPage />} />
           <Route path='/courses' element={<CoursePage />} />
           <Route path='/feedback' element={<FeedbackPage />} />
         </Route>

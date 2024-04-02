@@ -13,10 +13,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']  # 'id' should not be included when writing
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
         user = CustomUser.objects.create_user(
             **validated_data)
-        user.set_password(password)
         return user
 
 class StudentSerializer(serializers.ModelSerializer):

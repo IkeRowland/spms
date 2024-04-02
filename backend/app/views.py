@@ -43,6 +43,36 @@ def add_students(request):
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
         return Response(usersList, status=status.HTTP_201_CREATED)
+    
+
+# Login
+@api_view(['POST'])
+def login(request):
+    data = request.data
+    username = data.get('username', None)
+    password = data.get('password', None)
+    email = data.get('email', None)
+    if not username:
+        if not email:
+            return Response({"message": "Username/email required!"}, status=status.HTTP_400_BAD_REQUEST)
+    if not password:
+        return Response({"message": "Password required!"}, status=status.HTTP_400_BAD_REQUEST)
+    search_key = {}
+    if username:
+        search_key["username"] = username
+    else:
+        search_key["email"] = email
+    try:
+        user = CustomUser.objects.get(**search_key)
+
+        if not user.check_password(password):
+            return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except CustomUser.DoesNotExist:
+        return Response({"message": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['DELETE'])

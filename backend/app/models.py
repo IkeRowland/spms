@@ -26,7 +26,6 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(username, user_type, password, **extra_fields)
 
 
-
 class CustomUser(AbstractBaseUser):
     USER_TYPE_CHOICES = (
         ('student', 'Student'),

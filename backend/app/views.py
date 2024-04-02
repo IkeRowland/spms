@@ -2,8 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import StudentSerializer, CustomUserSerializer
-from .models import CustomUser, Student
+from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer
+from .models import CustomUser, Student, Course
 
 
 @api_view(['POST'])    
@@ -44,7 +44,25 @@ def add_students(request):
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
         return Response(usersList, status=status.HTTP_201_CREATED)
-    
+
+# Get all students
+@api_view(['GET'])
+def get_students(request):
+    if request.method == 'GET':
+        users_list = []
+        students = Student.objects.all()
+        for student in students:
+            user = CustomUser.objects.get(id=student.user_id)
+            student_serializer = StudentSerializer(student)
+            user_serializer = CustomUserSerializer(user)
+            student_info = {
+                **student_serializer.data,
+                **user_serializer.data
+            }
+            users_list.append(student_info)
+        return Response(users_list, status=status.HTTP_200_OK)
+
+
 
 # Login
 @api_view(['POST'])
@@ -106,3 +124,43 @@ def delete_user(request, user_id):
         except CustomUser.DoesNotExist:
             return Response({"message": "Not found!"}, status=status.HTTP_404_NOT_FOUND)
         
+
+
+# Create course
+@api_view(['POST'])
+def create_course(request):
+    if request.method == 'POST':
+        data = request.data
+        course_code = data.get('course_code', None)
+        course_name = data.get('course_name', None)
+
+        if not course_code:
+            return Response({"message": "Course code required!"}, status=status.HTTP_400_BAD_REQUEST)
+        if not course_name:
+            return Response({"message": "Course name required!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = CourseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message": "Course already exists!"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Get all courses
+@api_view(['GET'])
+def get_courses(request):
+    if request.method == 'GET':
+        courses = Course.objects.all()
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# Deleting a course
+@api_view(['DELETE'])
+def delete_course(request, course_id):
+    if request.method == 'DELETE':
+        try:
+            course = Course.objects.get(id=course_id)
+            course.delete()
+            return Response({"message": "Course deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
+        except Course.DoesNotExist:
+            return Response({"message": "Course not found!"}, status=status.HTTP_404_NOT_FOUND)

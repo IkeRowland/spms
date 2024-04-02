@@ -69,3 +69,8 @@ class Lecturer(models.Model):
 
 class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+
+
+class Course(models.Model):
+    course_code = models.CharField(max_length=30, unique=True)
+    course_name = models.CharField(max_length=200, unique=True)

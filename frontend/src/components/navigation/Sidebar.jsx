@@ -6,7 +6,14 @@ import ForumIcon from "@mui/icons-material/Forum";
 import FeedbackIcon from "@mui/icons-material/Feedback";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
+import {useDispatch} from "react-redux"
+import { logout } from "../../redux/actions/userActions";
 const Sidebar = () => {
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout())
+  }
   return (
     <div className='bg-gray-900 text-white w-48 py-4'>
       <div className='w-full border-b px-2 flex flex-col items-center'>
@@ -98,10 +105,10 @@ const Sidebar = () => {
             </NavLink>
           </li>
           <li className='my-1'>
-            <div className='flex gap-3 p-2 cursor-pointer hover:bg-gray-200 hover:text-gray-900'>
+            <button className='flex gap-3 p-2 cursor-pointer hover:bg-gray-200 hover:text-gray-900' onClick={handleLogout}>
               <LogoutIcon />
               <h6>Logout</h6>
-            </div>
+            </button>
           </li>
         </ul>
       </div>

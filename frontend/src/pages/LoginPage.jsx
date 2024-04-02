@@ -1,16 +1,29 @@
-import {useState} from "react"
-import { Link } from "react-router-dom";
+import {useEffect, useState} from "react"
+import { Link, useNavigate } from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux"
+import { login } from "../redux/actions/userActions";
 
 const LoginPage = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [regNo, setRegNo] = useState("");
   const [password, setPassword] = useState("");
+
+  const {loading, error, userInfo} = useSelector((state) => state.user);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log({regNo, password})
+    dispatch(login({ username: regNo, password }));
     setRegNo('');
     setPassword('');
   }
+
+  useEffect(() => {
+    if (userInfo?.token){
+      navigate('/')
+    }
+  }, [navigate, userInfo])
   return (
     <div className='h-screen grid md:grid-cols-2'>
       <div className='col-span-1 bg-gray-900 text-white flex flex-col items-center justify-center p-8'>
@@ -23,6 +36,8 @@ const LoginPage = () => {
           <h4 className='my-5 font-semibold text-3xl text-gray-900 capitalize'>
             Welcome back to SPMS
           </h4>
+          {loading && <p>Loading....</p>}
+          {error && <p className="bg-red-500 p-4 rounded text-oranger-500">{error}</p>}
           <div className='mb-2 flex flex-col'>
             <label className='py-1'>Reg No</label>
             <input

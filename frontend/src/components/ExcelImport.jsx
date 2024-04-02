@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
+import {useDispatch, useSelector} from "react-redux"
+import { importStudents, listStudents } from "../redux/actions/userActions";
 
 const ExcelImport = () => {
+  const dispatch = useDispatch();
   const [students, setStudents] = useState([]);
+
+  const {loading, error, students: studentsList} = useSelector((state) => state.user) 
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -17,15 +22,18 @@ const ExcelImport = () => {
 
       // Assuming the Excel file has columns: REG NO, FULL NAME, INDEX NO, EMAIL, CONTACT, YEAR JOINED, FACULTY, COURSE
       const students = studentData.slice(1).map((row) => ({
-        regNo: row[0],
-        fullName: row[1],
-        indexNo: row[2],
+        reg_no: row[0],
+        full_name: row[1],
+        index_no: row[2],
         email: row[3],
         contact: row[4],
-        yearJoined: row[5],
+        year_joined: row[5],
         faculty: row[6],
         course: row[7],
+        user_type: "student"
       }));
+
+      dispatch(importStudents(students))
 
       setStudents(students);
     };
@@ -33,17 +41,29 @@ const ExcelImport = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  console.log(students)
+  useEffect(() => {
+    dispatch(listStudents());
+  }, [dispatch])
+
+  useEffect(() => {
+    if (studentsList){
+      setStudents(studentsList)
+    }
+  }, [studentsList])
 
   return (
     <div className='w-full'>
       <div className='flex gap-3 justify-end items-center mb-4'>
-        <h6 className="my-auto">Import Student from Excel:</h6>
+        <h6 className='my-auto'>Import Student from Excel:</h6>
         <input type='file' onChange={handleFileChange} className='' />
       </div>
       <section className='w-full overflow-x-auto'>
+        {loading && <p>Loading...</p>}
+        {error && (
+          <p className='bg-red-500 p-4 rounded text-oranger-500'>{error}</p>
+        )}
         <table className='w-max border border-gray-400'>
-          <thead className="" >
+          <thead className=''>
             <tr className='bg-gray-200'>
               <th className='border border-gray-400 p-2'>REG NO</th>
               <th className='border border-gray-400 p-2'>FULL NAME</th>
@@ -58,19 +78,19 @@ const ExcelImport = () => {
           <tbody>
             {students.map((student, index) => (
               <tr key={index}>
-                <td className='border border-gray-400 p-2'>{student.regNo}</td>
+                <td className='border border-gray-400 p-2'>{student.reg_no}</td>
                 <td className='border border-gray-400 p-2'>
-                  {student.fullName}
+                  {student.full_name}
                 </td>
                 <td className='border border-gray-400 p-2'>
-                  {student.indexNo}
+                  {student.index_no}
                 </td>
                 <td className='border border-gray-400 p-2'>{student.email}</td>
                 <td className='border border-gray-400 p-2'>
                   {student.contact}
                 </td>
                 <td className='border border-gray-400 p-2'>
-                  {student.yearJoined}
+                  {student.year_joined}
                 </td>
                 <td className='border border-gray-400 p-2'>
                   {student.faculty}

@@ -39,10 +39,22 @@ export const userSlice = createSlice({
     addStudentsFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    getStudentsStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    getStudentsSuccess: (state, action) => {
+      state.loading = false;
+      state.students = action.payload;
+    },
+    getStudentsFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     }
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail } = userSlice.actions;
 
 export default userSlice.reducer;

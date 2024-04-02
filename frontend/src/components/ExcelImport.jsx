@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import {useDispatch, useSelector} from "react-redux"
-import { importStudents } from "../redux/actions/userActions";
+import { importStudents, listStudents } from "../redux/actions/userActions";
 
 const ExcelImport = () => {
   const dispatch = useDispatch();
   const [students, setStudents] = useState([]);
 
-  const {loading, error} = useSelector((state) => state.user) 
+  const {loading, error, students: studentsList} = useSelector((state) => state.user) 
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -41,7 +41,15 @@ const ExcelImport = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  console.log(students)
+  useEffect(() => {
+    dispatch(listStudents());
+  }, [dispatch])
+
+  useEffect(() => {
+    if (studentsList){
+      setStudents(studentsList)
+    }
+  }, [studentsList])
 
   return (
     <div className='w-full'>

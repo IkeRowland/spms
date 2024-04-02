@@ -1,4 +1,4 @@
-import { userLoginFail, userLoginStart, userLoginSuccess } from "../slices/userSlices"
+import { userLoginFail, userLoginStart, userLoginSuccess, clearUserState } from "../slices/userSlices"
 import axios from "redaxios"
 
 export const login = (userData) => async (dispatch) => {
@@ -17,4 +17,9 @@ export const login = (userData) => async (dispatch) => {
         const errMsg = err?.data ? err.data.message : err.statusText;
         dispatch(userLoginFail(errMsg))
     }
+}
+
+export const logout = () => (dispatch) => {
+    dispatch(clearUserState());
+    localStorage.removeItem('userInfo');
 }

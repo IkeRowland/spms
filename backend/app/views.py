@@ -44,7 +44,25 @@ def add_students(request):
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
         return Response(usersList, status=status.HTTP_201_CREATED)
-    
+
+# Get all students
+@api_view(['GET'])
+def get_students(request):
+    if request.method == 'GET':
+        users_list = []
+        students = Student.objects.all()
+        for student in students:
+            user = CustomUser.objects.get(id=student.user_id)
+            student_serializer = StudentSerializer(student)
+            user_serializer = CustomUserSerializer(user)
+            student_info = {
+                **student_serializer.data,
+                **user_serializer.data
+            }
+            users_list.append(student_info)
+        return Response(users_list, status=status.HTTP_200_OK)
+
+
 
 # Login
 @api_view(['POST'])

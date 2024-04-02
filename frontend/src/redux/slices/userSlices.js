@@ -6,6 +6,7 @@ const initialState = {
   loading: false,
   error: null,
   userInfo: userInfoFromLocalStorage,
+  students: [],
 };
 
 export const userSlice = createSlice({
@@ -26,10 +27,22 @@ export const userSlice = createSlice({
     },
     clearUserState: (state) => {
       state.userInfo = null;
+    },
+    addStudentsStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    addStudentsSuccess: (state, action) => {
+      state.loading = false;
+      state.students = action.payload;
+    },
+    addStudentsFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     }
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail } = userSlice.actions;
 
 export default userSlice.reducer;

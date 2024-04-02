@@ -1,8 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import StudentSerializer, CustomUserSerializer
-from .models import CustomUser
+from .models import CustomUser, Student
 
 
 @api_view(['POST'])    
@@ -67,9 +68,28 @@ def login(request):
 
         if not user.check_password(password):
             return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        student_serializer = {}
+        if user.user_type == 'student':
+            student = Student.objects.get(user_id=user.id)
+            student_serializer = StudentSerializer(student)
         
         serializer = CustomUserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Generate JWT token
+        refresh = RefreshToken.for_user(user)
+        token = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+        res_data = {
+            'user': {
+                **serializer.data,
+                **student_serializer.data,
+            },
+            'token': token
+        }
+        return Response(res_data, status=status.HTTP_200_OK)
 
     except CustomUser.DoesNotExist:
         return Response({"message": "User not found!"}, status=status.HTTP_404_NOT_FOUND)

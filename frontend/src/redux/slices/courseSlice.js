@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   loading: false,
   error: null,
+  success: false,
   courses: []
 };
 
@@ -13,13 +14,16 @@ export const courseSlice = createSlice({
     createCourseStart: (state) => {
         state.loading = false;
         state.error = null;
+        state.success = false;
     },
     createCourseSuccess: (state) => {
         state.loading = false;
+        state.success = true;
     },
     createCourseFail: (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.success = false;
     },
     getCoursesStart: (state) => {
         state.loading = true;

@@ -33,6 +33,8 @@ const ExcelImport = () => {
     reader.readAsArrayBuffer(file);
   };
 
+  console.log(students)
+
   return (
     <div className='w-full'>
       <div className='flex gap-3 justify-end items-center mb-4'>

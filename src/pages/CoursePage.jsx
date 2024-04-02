@@ -90,7 +90,7 @@ const CoursePage = () => {
         </div>
         <form className="col-span-2 bg-white p-4 h-max">
           <h2 className="text-xl font-bold p-2"> Register New Course</h2>
-          <table className="border">
+          <table className="">
             <thead>
               <tr>
                 <th className="border border-gray-300 p-2">Course Code</th>
@@ -99,11 +99,14 @@ const CoursePage = () => {
             </thead>
             <tbody>
               <tr>
-                <td className="border border-gray-300 p-2">
-                  <input placeholder="ICS 215" className="w-28"></input>
+                <td className="outline-none border border-gray-300 p-2">
+                  <input
+                    placeholder="ICS 215"
+                    className="w-28 outline-none"
+                  ></input>
                 </td>
-                <td className="p-2">
-                  <select>
+                <td className="border border-gray-300 p-2">
+                  <select className="outline-none">
                     <option>First Attempt</option>
                     <option>Suplement</option>
                   </select>
@@ -111,10 +114,13 @@ const CoursePage = () => {
               </tr>
               <tr>
                 <td className="border border-gray-300 p-2">
-                  <input placeholder="ICS 215" className="w-28"></input>
+                  <input
+                    placeholder="ICS 215"
+                    className="w-28 outline-none"
+                  ></input>
                 </td>
-                <td className="p-2">
-                  <select>
+                <td className="border border-gray-300 p-2">
+                  <select className="outline-none">
                     <option>First Attempt</option>
                     <option>Suplement</option>
                   </select>
@@ -122,10 +128,13 @@ const CoursePage = () => {
               </tr>
               <tr>
                 <td className="border border-gray-300 p-2">
-                  <input placeholder="ICS 215" className="w-28"></input>
+                  <input
+                    placeholder="ICS 215"
+                    className="w-28 outline-none"
+                  ></input>
                 </td>
-                <td className="p-2">
-                  <select>
+                <td className=" border border-gray-300 p-2">
+                  <select className="outline-none">
                     <option>First Attempt</option>
                     <option>Suplement</option>
                   </select>
@@ -133,10 +142,13 @@ const CoursePage = () => {
               </tr>
               <tr>
                 <td className="border border-gray-300 p-2">
-                  <input placeholder="ICS 215" className="w-28"></input>
+                  <input
+                    placeholder="ICS 215"
+                    className="w-28 outline-none"
+                  ></input>
                 </td>
-                <td className="p-2">
-                  <select>
+                <td className="bordewr border-gray-300 p-2">
+                  <select className="outline-none">
                     <option>First Attempt</option>
                     <option>Suplement</option>
                   </select>
@@ -144,10 +156,13 @@ const CoursePage = () => {
               </tr>
               <tr>
                 <td className="border border-gray-300 p-2">
-                  <input placeholder="ICS 215" className="w-28"></input>
+                  <input
+                    placeholder="ICS 215"
+                    className="w-28 outline-none"
+                  ></input>
                 </td>
-                <td className="p-2">
-                  <select>
+                <td className="border boreder-gray-300 p-2">
+                  <select className="outline-none">
                     <option>First Attempt</option>
                     <option>Suplement</option>
                   </select>

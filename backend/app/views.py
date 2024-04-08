@@ -100,11 +100,18 @@ def login(request):
             'access': str(refresh.access_token),
         }
 
-        res_data = {
-            'user': {
+        user_info = {}
+
+        if user.user_type == 'student':
+            user_info = {
                 **serializer.data,
                 **student_serializer.data,
-            },
+            }
+        else:
+            user_info = serializer.data
+
+        res_data = {
+            'user': user_info,
             'token': token
         }
         return Response(res_data, status=status.HTTP_200_OK)

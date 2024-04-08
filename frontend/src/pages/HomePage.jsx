@@ -1,7 +1,12 @@
 import GradesPieChart from "../components/charts/GradesPieChart";
 import YearStats from "../components/charts/YearStats";
+import {useSelector} from "react-redux";
 
 const HomePage = () => {
+  const {userInfo} = useSelector((state) => state.user);
+  console.log(userInfo)
+  const current_year = new Date().getFullYear()
+  console.log(current_year)
   return (
     <>
       <section className='bg-slate-100 shadow-sm p-4'>
@@ -14,10 +19,10 @@ const HomePage = () => {
               className='w-14 h-14 rounded-full object-cover border'
             />
             <h5 className='text-lg text-gray-600 uppercase'>
-              Wamae J. Ndiritu
+              {userInfo?.user?.full_name}
             </h5>
-            <h6 className='text-gray-600'>Reg No: E46/6272/2021</h6>
-            <p className='text-md uppercase text-gray-600'>Year 3</p>
+            <h6 className='text-gray-600'>Reg No: {userInfo?.user?.reg_no}</h6>
+            <p className='text-md uppercase text-gray-600'>Year {current_year - userInfo?.user?.year_joined}</p>
           </div>
           <div className='col-span-1 md:col-span-2 bg-white p-2'>
             <div className='flex justify-between items-center'>

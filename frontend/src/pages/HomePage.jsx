@@ -4,9 +4,7 @@ import {useSelector} from "react-redux";
 
 const HomePage = () => {
   const {userInfo} = useSelector((state) => state.user);
-  console.log(userInfo)
   const current_year = new Date().getFullYear()
-  console.log(current_year)
   return (
     <>
       <section className='bg-slate-100 shadow-sm p-4'>

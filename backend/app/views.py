@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+import json
 from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
 from .models import CustomUser, Student, Course, Semester, Enrollment, ResultPermission
 
@@ -262,9 +263,10 @@ def enroll_course(request):
     if len(course_data) > 0:
         errors = []
         for obj in course_data:
-            permission = ResultPermission.objects.get(course__course_code=obj.get('course_code'))
+            course_code = obj.get('course_code')
+            permission = ResultPermission.objects.get(course__course_code=course_code)
             data = {
-                'course_code': obj.get('course_code'),
+                'course_code': course_code,
                 'semester': obj.get('semester_id'),
                 'exam_type': obj.get('exam_type'),
                 'student': request.user.id,
@@ -274,7 +276,11 @@ def enroll_course(request):
             if serializer.is_valid():
                 serializer.save()
             else:
-                errors.append(serializer.errors)
+                errors_dict = json.loads(json.dumps(serializer.errors))
+                if errors_dict['non_field_errors'][0] == "The fields student, course_code must make a unique set.":
+                    errors.append({"message": f"{course_code} is already registered!"})
+                else:
+                    errors.append(serializer.errors)
         if len(errors) > 0:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)    
         return Response({'message': 'Enrolled successfully'}, status=status.HTTP_201_CREATED)

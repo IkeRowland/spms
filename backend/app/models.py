@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-    
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, user_type, password=None, **extra_fields):
@@ -95,10 +96,25 @@ class Semester(models.Model):
         (1, 'I'),
         (2, 'II'),
     ]
+    id = models.CharField(max_length=50, default="", blank=True, primary_key=True, unique=True)
     year_start = models.IntegerField()
     year_end = models.IntegerField()
     semester_number = models.IntegerField(choices=SEMESTER_CHOICES, null=True)
     is_current = models.BooleanField(default=False)
+
+   # Override the clean method to ensure id is generated automatically
+    def clean(self):
+        # Check if the object is new (not saved before)
+        if not self.pk:
+            # Generate id based on year_start, year_end, and semester_number
+            self.id = f"{self.year_start}/{self.year_end} - SEM {self.semester_number}"
+        super().clean()
+
+    # Override the save method to generate custom primary key
+    def save(self, *args, **kwargs):
+        # Call clean method to ensure id is generated
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class ResultPermission(models.Model):
@@ -108,8 +124,8 @@ class ResultPermission(models.Model):
 class Enrollment(models.Model):
     course_code = models.ForeignKey(Course, null=True, on_delete=models.SET_NULL)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    semester = models.OneToOneField(Semester, null=True, on_delete=models.SET_NULL)
+    semester = models.ForeignKey(Semester, null=True, on_delete=models.SET_NULL)
     coursework_marks = models.IntegerField(null=True, default=0)
     exam_marks = models.IntegerField(null=True, default=0)
-    result_permission = models.OneToOneField(ResultPermission, null=True, on_delete=models.SET_NULL)
+    result_permission = models.ForeignKey(ResultPermission, null=True, on_delete=models.SET_NULL)
 

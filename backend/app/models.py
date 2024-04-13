@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
     
 
 class CustomUserManager(BaseUserManager):
@@ -26,7 +26,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(username, user_type, password, **extra_fields)
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     USER_TYPE_CHOICES = (
         ('student', 'Student'),
         ('lecturer', 'Lecturer'),
@@ -46,6 +46,14 @@ class CustomUser(AbstractBaseUser):
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['user_type', 'email']
+
+    def has_perm(self, perm, obj=None):
+        # Handle custom permissions logic here
+        return True
+
+    def has_module_perms(self, app_label):
+        # Handle custom module permissions logic here
+        return True
 
     def __str__(self):
         return self.username

@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import get_object_or_404
+from django.db.models import Count
 import json
 from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
 from .models import CustomUser, Student, Course, Semester, Enrollment, ResultPermission
@@ -224,8 +225,6 @@ def delete_course(request, course_id):
             return Response({"message": "Course not found!"}, status=status.HTTP_404_NOT_FOUND)
 
 # Get all students enrolled in a given course at a given semester
-
-
 @api_view(['GET'])
 def get_course_students(request):
     """
@@ -392,3 +391,39 @@ def enroll_course(request):
         if len(errors) > 0:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'Enrolled successfully'}, status=status.HTTP_201_CREATED)
+
+
+# Get perfomance stats
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_perfomance_stats(request):
+    """
+    Gets current user perfomance stats 
+    """
+    user = request.user
+    enrollments = Enrollment.objects.filter(student__user=user)
+
+    # Count occurrences of each grade
+    grade_stats = enrollments.values('grade').annotate(count=Count('grade'))
+
+    # Example output: [{'grade': 'A', 'count': 10}, {'grade': 'B', 'count': 5}, ...]
+
+    return Response(grade_stats, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_course_perfomance_stats(request):
+    """
+    Gets course perfomance stats 
+    """
+    course_code = request.data.get('course_code')
+    semester_id = request.data.get('semester_id')
+    enrollments = Enrollment.objects.filter(
+        course_code__course_code=course_code, semester_id=semester_id)
+
+    # Count occurrences of each grade
+    grade_stats = enrollments.values('grade').annotate(count=Count('grade'))
+    
+    return Response(grade_stats, status=status.HTTP_200_OK)
+    

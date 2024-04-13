@@ -4,10 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import get_object_or_404
+from .helpers import generate_random_password, send_password_email
 from django.db.models import Count
 import json
-from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
-from .models import CustomUser, Student, Course, Semester, Enrollment, ResultPermission
+from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
+from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission
+
 
 
 @api_view(['POST'])
@@ -57,9 +59,61 @@ def add_students(request):
         return Response(usersList, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_lecturers(request):
+    """
+    Admin add Lecturer list
+    """
+    if request.method == 'POST':
+        data = request.data
+        usersList = []
+        errors = []
+        for userObj in data:
+            random_pass = generate_random_password()
+            userObj['username'] = userObj.get('staff_no')
+            userObj["password"] = random_pass
+            serializer = CustomUserSerializer(data=userObj)
+            if serializer.is_valid():
+                user = serializer.save()
+                lecturer_data = {
+                    'user': user.id,
+                    'staff_no': userObj['staff_no']
+                }
+                send_password_email(userObj['email'], random_pass)
+
+                lecturer_serializer = LecturerSerializer(data=lecturer_data)
+                if lecturer_serializer.is_valid():
+                    lecturer_serializer.save()
+                    user_data = {
+                        **serializer.data,
+                        **lecturer_serializer.data
+                    }
+                    usersList.append(user_data)
+                else:
+                    errors.append(lecturer_serializer.errors)
+            else:
+                errors.append(serializer.errors)
+        if len(errors) > 0:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(usersList, status=status.HTTP_201_CREATED)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Get all Lecturers
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_lecturers(request):
+    """
+    Admin get all Lecturer objects
+    """
+    if request.method == 'GET':
+        lecturers = Lecturer.objects.all()
+        users = [{'lecturer_id': lecturer.user.id, 'staff_no': lecturer.staff_no, 'full_name': lecturer.user.username, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
+        return Response(users, status=status.HTTP_200_OK)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+
 # Get all students
-
-
 @api_view(['GET'])
 def get_students(request):
     if request.method == 'GET':

@@ -73,6 +73,7 @@ class Student(models.Model):
 
 class Lecturer(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    staff_no = models.CharField(max_length=100, null=True, blank=True)
 
 
 class Admin(models.Model):

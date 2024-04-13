@@ -132,6 +132,7 @@ class Enrollment(models.Model):
     exam_type = models.CharField(
         max_length=100, choices=EXAM_TYPE_CHOICES, default='first attempt')
     result_permission = models.ForeignKey(ResultPermission, null=True, on_delete=models.SET_NULL)
+    grade = models.CharField(max_length=1, default='', null=True)
 
     class Meta:
         # Define unique constraint for student and course_code combination

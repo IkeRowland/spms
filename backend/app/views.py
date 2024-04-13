@@ -262,7 +262,7 @@ def get_course_students(request):
 
     # Extract student details from enrollments
     students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks':
-                 enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+                 enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
     return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
 
@@ -294,6 +294,49 @@ def upload_marks(request):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "Marks uploaded successfully"}, status=status.HTTP_200_OK)
+    
+# Publish results
+@api_view(['PATCH'])
+def publish_results(request):
+    """
+    Compute grades and publish results for enrollments
+    """
+    if request.method == 'PATCH':
+        course_code = request.data.get('course_code')
+        semester_id = request.data.get('semester_id')
+        enrollments = Enrollment.objects.filter(course_code__course_code=course_code, semester_id=semester_id)
+
+        for enrollment in enrollments:
+            if enrollment.coursework_marks and enrollment.exam_marks:
+                # Calculate total marks
+                total_marks = enrollment.coursework_marks + enrollment.exam_marks
+
+                # Calculate percentage
+                percentage = (total_marks / 100) * 100
+
+                # Determine grade based on percentage
+                if percentage < 40:
+                    grade = 'E'
+                elif percentage < 50:
+                    grade = 'D'
+                elif percentage < 60:
+                    grade = 'C'
+                elif percentage < 70:
+                    grade = 'B'
+                else:
+                    grade = 'A'
+
+                # Update the enrollment with the calculated grade
+                try:
+                    enrollment = Enrollment.objects.get(id=enrollment.id)
+                    enrollment.grade = grade
+                    enrollment.save()
+                except Enrollment.DoesNotExist:
+                    pass
+        result_permission = ResultPermission.objects.get(course__course_code=course_code)
+        result_permission.marks_published = True
+        result_permission.save()
+        return Response({"message": "Results published successfully"}, status=status.HTTP_200_OK)
 
 
 # Get student courses

@@ -122,10 +122,16 @@ class ResultPermission(models.Model):
     marks_published = models.BooleanField(default=False)
 
 class Enrollment(models.Model):
+    EXAM_TYPE_CHOICES = [
+        ('supplementary', 'Supplementary'),
+        ('first attempt', 'First Attempt'),
+    ]
     course_code = models.ForeignKey(Course, null=True, on_delete=models.SET_NULL)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, null=True, on_delete=models.SET_NULL)
     coursework_marks = models.IntegerField(null=True, default=0)
     exam_marks = models.IntegerField(null=True, default=0)
+    exam_type = models.CharField(
+        max_length=100, choices=EXAM_TYPE_CHOICES, default='first attempt')
     result_permission = models.ForeignKey(ResultPermission, null=True, on_delete=models.SET_NULL)
 

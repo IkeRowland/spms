@@ -1,8 +1,9 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer
+from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
 from .models import CustomUser, Student, Course, Semester, Enrollment, ResultPermission
 
 
@@ -248,3 +249,32 @@ def get_course_students(request):
     students = [{'student_id': enrollment.student.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'cat_marks': enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
     return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
+
+
+# Enroll student to course
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def enroll_course(request):
+    """
+    Enroll current user to the given courses
+    """
+    course_data = request.data
+    if len(course_data) > 0:
+        errors = []
+        for obj in course_data:
+            permission = ResultPermission.objects.get(course__course_code=obj.get('course_code'))
+            data = {
+                'course_code': obj.get('course_code'),
+                'semester': obj.get('semester_id'),
+                'exam_type': obj.get('exam_type'),
+                'student': request.user.id,
+                'result_permission': permission.id
+            }
+            serializer = EnrollmentSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                errors.append(serializer.errors)
+        if len(errors) > 0:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)    
+        return Response({'message': 'Enrolled successfully'}, status=status.HTTP_201_CREATED)

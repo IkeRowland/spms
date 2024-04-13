@@ -71,8 +71,6 @@ class Student(models.Model):
     def __str__(self):
         return self.reg_no
 
-
-
 class Lecturer(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
 

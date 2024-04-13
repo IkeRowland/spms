@@ -18,37 +18,41 @@ def add_students(request):
         for userObj in data:
             userObj["username"] = userObj['reg_no']
             userObj["password"] = userObj['index_no']
-            serializer = CustomUserSerializer(data=userObj)
-            if serializer.is_valid():
-                user = serializer.save()
+            try:
+                user = CustomUser.objects.get(username=userObj['username'])
+                continue
+            except CustomUser.DoesNotExist:
+                serializer = CustomUserSerializer(data=userObj)
+                if serializer.is_valid():
+                    user = serializer.save()
 
-                # Create student
-                student_data = {
-                    'reg_no': userObj.get('reg_no'),
-                    'index_no': userObj.get('index_no'),
-                    'year_joined': userObj.get('year_joined'),
-                    'faculty': userObj.get('faculty'),
-                    'course': userObj.get('course'),
-                    'user': user.id
-                }
-
-                # Serialize student data
-                student_serializer = StudentSerializer(data=student_data)
-                if student_serializer.is_valid():
-                    student_serializer.save()
-
-                    user_data = {
-                        **serializer.data,
-                        **student_serializer.data
+                    # Create student
+                    student_data = {
+                        'reg_no': userObj.get('reg_no'),
+                        'index_no': userObj.get('index_no'),
+                        'year_joined': userObj.get('year_joined'),
+                        'faculty': userObj.get('faculty'),
+                        'course': userObj.get('course'),
+                        'user': user.id
                     }
 
-                    usersList.append(user_data)
+                    # Serialize student data
+                    student_serializer = StudentSerializer(data=student_data)
+                    if student_serializer.is_valid():
+                        student_serializer.save()
+
+                        user_data = {
+                            **serializer.data,
+                            **student_serializer.data
+                        }
+
+                        usersList.append(user_data)
+                    else:
+                        errors.append(student_serializer.errors)
                 else:
-                    errors.append(student_serializer.errors)
-            else:
-                errors.append(student_serializer.errors)
+                    errors.append(serializer.errors)
         if len(errors) > 0:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(usersList, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -262,7 +266,6 @@ def get_course_students(request):
 
     return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
 
-
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def upload_marks(request):
@@ -290,7 +293,7 @@ def upload_marks(request):
                 # Handle invalid serializer data
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response("Marks uploaded successfully", status=status.HTTP_200_OK)
+        return Response({"message": "Marks uploaded successfully"}, status=status.HTTP_200_OK)
 
 
 # Get student courses

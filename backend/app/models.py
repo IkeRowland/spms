@@ -85,7 +85,7 @@ class Course(models.Model):
         (1, 'I'),
         (2, 'II'),
     ]
-    course_code = models.CharField(max_length=30, unique=True)
+    course_code = models.CharField(primary_key=True, max_length=30, unique=True)
     course_name = models.CharField(max_length=200, unique=True)
     level = models.IntegerField(default=None, null=True)
     semester_number = models.IntegerField(choices=SEMESTER_CHOICES, null=True)
@@ -102,14 +102,14 @@ class Semester(models.Model):
 
 
 class ResultPermission(models.Model):
-    course = models.OneToOneField(Course, on_delete=models.CASCADE)
+    course_code = models.OneToOneField(Course, on_delete=models.CASCADE)
     marks_published = models.BooleanField(default=False)
 
 class Enrollment(models.Model):
-    course = models.ForeignKey(Course, null=True, on_delete=models.SET_NULL)
+    course_code = models.ForeignKey(Course, null=True, on_delete=models.SET_NULL)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     semester = models.OneToOneField(Semester, null=True, on_delete=models.SET_NULL)
-    coursework_marks = models.IntegerField(null=True, default=None)
-    exam_marks = models.IntegerField(null=True, default=None)
+    coursework_marks = models.IntegerField(null=True, default=0)
+    exam_marks = models.IntegerField(null=True, default=0)
     result_permission = models.OneToOneField(ResultPermission, null=True, on_delete=models.SET_NULL)
 

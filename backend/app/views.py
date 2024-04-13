@@ -170,9 +170,6 @@ def semester_view(request, semester_id=None):
         return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-# Delete semester
-@api_view([''])
-
 # Create course
 @api_view(['POST'])
 def create_course(request):

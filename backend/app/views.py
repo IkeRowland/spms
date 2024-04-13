@@ -251,6 +251,23 @@ def get_course_students(request):
 
     return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
 
+# Get student courses
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_student_courses(request):
+    """
+    Get current user courses
+    """
+    user = request.user
+    enrollments = Enrollment.objects.filter(
+        student__user__id=user.id)
+
+    # Extract student details from enrollments
+    courses = [{'enrollment_id': enrollment.id, 'course_code': enrollment.course_code.course_code, 'course_name': enrollment.course_code.course_name,
+                 'exam_type': enrollment.exam_type } for enrollment in enrollments]
+    
+    return Response(courses, status=status.HTTP_200_OK)
+
 
 # Enroll student to course
 @api_view(['POST'])

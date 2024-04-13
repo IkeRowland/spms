@@ -2,8 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer
-from .models import CustomUser, Student, Course
+from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer
+from .models import CustomUser, Student, Course, Semester, Enrollment, ResultPermission
 
 
 @api_view(['POST'])    
@@ -132,6 +132,46 @@ def delete_user(request, user_id):
             return Response({"message": "Not found!"}, status=status.HTTP_404_NOT_FOUND)
         
 
+
+# Operations on semester
+@api_view(['POST', 'GET', 'DELETE'])
+def semester_view(request, semester_id=None):
+    """
+    Create, Get and Delete semester objects
+    """
+    if request.method == 'POST':
+        serializer = SemesterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'GET':
+        # Get all semesters
+        semesters = Semester.objects.all()
+        serializer = SemesterSerializer(semesters, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    elif request.method == 'GET' and semester_id:
+        # Get semester by ID
+        try:
+            semester = Semester.objects.get(id=semester_id)
+            serializer = SemesterSerializer(semester)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Semester.DoesNotExist:
+            return Response({"message": "Not Found!"}, status=status.HTTP_404_NOT_FOUND)
+    elif request.method == 'DELETE' and semester_id:
+        # Delete semester object
+        try:
+            semester = Semester.objects.get(id=semester_id)
+            semester.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Semester.DoesNotExist:
+            return Response({"message": "Not found!"}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+# Delete semester
+@api_view([''])
 
 # Create course
 @api_view(['POST'])

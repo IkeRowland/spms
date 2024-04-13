@@ -91,10 +91,14 @@ class Course(models.Model):
     semester_number = models.IntegerField(choices=SEMESTER_CHOICES, null=True)
 
 class Semester(models.Model):
+    SEMESTER_CHOICES = [
+        (1, 'I'),
+        (2, 'II'),
+    ]
     year_start = models.IntegerField()
     year_end = models.IntegerField()
-    semester_number = models.IntegerField()
-    is_current = models.BooleanField()
+    semester_number = models.IntegerField(choices=SEMESTER_CHOICES, null=True)
+    is_current = models.BooleanField(default=False)
 
 
 class ResultPermission(models.Model):

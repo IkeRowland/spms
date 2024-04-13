@@ -208,3 +208,43 @@ def delete_course(request, course_id):
             return Response({"message": "Course deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
         except Course.DoesNotExist:
             return Response({"message": "Course not found!"}, status=status.HTTP_404_NOT_FOUND)
+
+# Get all students enrolled in a given course at a given semester
+@api_view(['GET'])
+def get_course_students(request):
+    """
+    Get all students enrolled in a given 
+    course at a given semester
+
+    Request Data:
+        course_code: (str) - Unique code for course object
+                    eg. ICS 215, or ICS 215 - Object Oriented Programming
+        semester_id: (str) - Unique id for semester object 
+                    eg. 2023/2024 - SEM 2
+    Response Data:
+        (dict): A dictionary in the format
+        {
+            'course': 'ICS 215 - Object Oriented Programming',
+            'semester': '2023/2024 - SEM 2',
+            'students': [
+                {
+                    'student_id': 1,
+                    'reg_no': 'E46/6272/2021',
+                    'student_name': 'WAMAE JOSEPH NDIRITU',
+                    'cat_marks': null,
+                    'exam_marks': null
+                }
+                ...
+            ]
+        }
+    """
+    course_code = request.data.get('course_code')
+    semester_id = request.data.get('semester_id')
+    # Retrieve enrollments for the specified course and semester
+    enrollments = Enrollment.objects.filter(
+        course_code__course_code=course_code, semester_id=semester_id)
+
+    # Extract student details from enrollments
+    students = [{'student_id': enrollment.student.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'cat_marks': enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+
+    return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)

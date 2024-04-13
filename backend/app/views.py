@@ -76,9 +76,29 @@ def get_students(request):
             users_list.append(student_info)
         return Response(users_list, status=status.HTTP_200_OK)
 
+# Update profile
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    """
+    Update contact and password
+    """
+    if request.method == 'PATCH':
+        current_user = request.user
+        user = CustomUser.objects.get(id=current_user.id)
+        if request.data.get('contact'):
+            user.contact = request.data.get('contact')
+        elif request.data.get('password') and request.data.get('current_password'):
+            if user.check_password(request.data.get('current_password')):
+                user.set_password(request.data.get('password'))
+            else:
+                return Response({"message": "Wrong password!"}, status=status.HTTP_401_UNAUTHORIZED)
+        user.save()
+        return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
 # Login
-
-
 @api_view(['POST'])
 def login(request):
     data = request.data

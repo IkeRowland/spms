@@ -282,11 +282,12 @@ def enroll_course(request):
         for obj in course_data:
             course_code = obj.get('course_code')
             permission = ResultPermission.objects.get(course__course_code=course_code)
+            student = Student.objects.get(user_id=request.user.id)
             data = {
                 'course_code': course_code,
                 'semester': obj.get('semester_id'),
                 'exam_type': obj.get('exam_type'),
-                'student': request.user.id,
+                'student': student.id,
                 'result_permission': permission.id
             }
             serializer = EnrollmentSerializer(data=data)

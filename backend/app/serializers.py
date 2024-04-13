@@ -38,7 +38,7 @@ class AdminSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ['id', 'course_code', 'course_name', 'semester_number', 'level']
+        fields = ['course_code', 'course_name', 'semester_number', 'level']
 
 class SemesterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,4 +48,4 @@ class SemesterSerializer(serializers.ModelSerializer):
 class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
-        fields = ['course_code', 'student', 'semester', 'result_permission', 'exam_type']
+        fields = ['course_code', 'student', 'semester', 'result_permission', 'exam_type', 'coursework_marks', 'exam_marks']

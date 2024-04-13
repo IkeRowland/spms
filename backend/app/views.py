@@ -3,16 +3,18 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.generics import get_object_or_404
 import json
 from .serializers import StudentSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
 from .models import CustomUser, Student, Course, Semester, Enrollment, ResultPermission
 
 
-@api_view(['POST'])    
+@api_view(['POST'])
 def add_students(request):
     if request.method == 'POST':
         data = request.data
         usersList = []
+        errors = []
         for userObj in data:
             userObj["username"] = userObj['reg_no']
             userObj["password"] = userObj['index_no']
@@ -42,12 +44,17 @@ def add_students(request):
 
                     usersList.append(user_data)
                 else:
-                    return Response(student_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    errors.append(student_serializer.errors)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+                errors.append(student_serializer.errors)
+        if len(errors) > 0:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(usersList, status=status.HTTP_201_CREATED)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Get all students
+
+
 @api_view(['GET'])
 def get_students(request):
     if request.method == 'GET':
@@ -64,9 +71,9 @@ def get_students(request):
             users_list.append(student_info)
         return Response(users_list, status=status.HTTP_200_OK)
 
-
-
 # Login
+
+
 @api_view(['POST'])
 def login(request):
     data = request.data
@@ -92,7 +99,7 @@ def login(request):
         if user.user_type == 'student':
             student = Student.objects.get(user_id=user.id)
             student_serializer = StudentSerializer(student)
-        
+
         serializer = CustomUserSerializer(user)
 
         # Generate JWT token
@@ -132,7 +139,6 @@ def delete_user(request, user_id):
             return Response({"message": "User deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
         except CustomUser.DoesNotExist:
             return Response({"message": "Not found!"}, status=status.HTTP_404_NOT_FOUND)
-        
 
 
 # Operations on semester
@@ -170,7 +176,7 @@ def semester_view(request, semester_id=None):
             return Response({"message": "Not found!"}, status=status.HTTP_404_NOT_FOUND)
     else:
         return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 
 # Create course
 @api_view(['POST'])
@@ -184,7 +190,7 @@ def create_course(request):
             return Response({"message": "Course code required!"}, status=status.HTTP_400_BAD_REQUEST)
         if not course_name:
             return Response({"message": "Course name required!"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -201,6 +207,8 @@ def get_courses(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # Deleting a course
+
+
 @api_view(['DELETE'])
 def delete_course(request, course_id):
     if request.method == 'DELETE':
@@ -212,6 +220,8 @@ def delete_course(request, course_id):
             return Response({"message": "Course not found!"}, status=status.HTTP_404_NOT_FOUND)
 
 # Get all students enrolled in a given course at a given semester
+
+
 @api_view(['GET'])
 def get_course_students(request):
     """
@@ -233,7 +243,7 @@ def get_course_students(request):
                     'student_id': 1,
                     'reg_no': 'E46/6272/2021',
                     'student_name': 'WAMAE JOSEPH NDIRITU',
-                    'cat_marks': null,
+                    'coursework_marks': null,
                     'exam_marks': null
                 }
                 ...
@@ -247,9 +257,41 @@ def get_course_students(request):
         course_code__course_code=course_code, semester_id=semester_id)
 
     # Extract student details from enrollments
-    students = [{'student_id': enrollment.student.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'cat_marks': enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks':
+                 enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
     return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def upload_marks(request):
+    """
+    Uploads marks in the Enrollment object
+    """
+    if request.method == 'PATCH':
+        enrollments_data = request.data.get('enrollments', [])
+        for enrollment_data in enrollments_data:
+            # Get the existing Enrollment object
+            enrollment_id = enrollment_data.get('enrollment_id')
+            enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+
+            # Update only the coursework_marks and exam_marks fields
+            serializer = EnrollmentSerializer(
+                instance=enrollment,
+                data={'coursework_marks': enrollment_data.get('coursework_marks'),
+                      'exam_marks': enrollment_data.get('exam_marks')},
+                partial=True  # Allow partial updates
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                # Handle invalid serializer data
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Marks uploaded successfully", status=status.HTTP_200_OK)
+
 
 # Get student courses
 @api_view(['GET'])
@@ -264,8 +306,8 @@ def get_student_courses(request):
 
     # Extract student details from enrollments
     courses = [{'enrollment_id': enrollment.id, 'course_code': enrollment.course_code.course_code, 'course_name': enrollment.course_code.course_name,
-                 'exam_type': enrollment.exam_type } for enrollment in enrollments]
-    
+                'exam_type': enrollment.exam_type} for enrollment in enrollments]
+
     return Response(courses, status=status.HTTP_200_OK)
 
 
@@ -281,7 +323,8 @@ def enroll_course(request):
         errors = []
         for obj in course_data:
             course_code = obj.get('course_code')
-            permission = ResultPermission.objects.get(course__course_code=course_code)
+            permission = ResultPermission.objects.get(
+                course__course_code=course_code)
             student = Student.objects.get(user_id=request.user.id)
             data = {
                 'course_code': course_code,
@@ -296,9 +339,10 @@ def enroll_course(request):
             else:
                 errors_dict = json.loads(json.dumps(serializer.errors))
                 if errors_dict['non_field_errors'][0] == "The fields student, course_code must make a unique set.":
-                    errors.append({"message": f"{course_code} is already registered!"})
+                    errors.append(
+                        {"message": f"{course_code} is already registered!"})
                 else:
                     errors.append(serializer.errors)
         if len(errors) > 0:
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)    
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'Enrolled successfully'}, status=status.HTTP_201_CREATED)

@@ -102,7 +102,7 @@ class Semester(models.Model):
 
 
 class ResultPermission(models.Model):
-    course_code = models.OneToOneField(Course, on_delete=models.CASCADE)
+    course = models.OneToOneField(Course, on_delete=models.SET_NULL, null=True)
     marks_published = models.BooleanField(default=False)
 
 class Enrollment(models.Model):

@@ -8,7 +8,7 @@ from .helpers import generate_random_password, send_password_email
 from django.db.models import Count
 import json
 from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
-from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission
+from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission, Teaching
 
 
 
@@ -109,7 +109,7 @@ def get_lecturers(request):
     """
     if request.method == 'GET':
         lecturers = Lecturer.objects.all()
-        users = [{'lecturer_id': lecturer.user.id, 'staff_no': lecturer.staff_no, 'full_name': lecturer.user.username, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
+        users = [{'lecturer_id': lecturer.id, 'user_id': lecturer.user.id, 'staff_no': lecturer.staff_no, 'full_name': lecturer.user.username, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
         return Response(users, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -500,4 +500,75 @@ def get_course_perfomance_stats(request):
     grade_stats = enrollments.values('grade').annotate(count=Count('grade'))
     
     return Response(grade_stats, status=status.HTTP_200_OK)
+
+
+# Get Lecturers teachings
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_lecturer_courses(request):
+    """
+    Get Lecturer's courses
+    """
+    if request.method == 'GET':
+        user = request.user
+        teachings = Teaching.objects.filter(lecturer__user__id=user.id)
+        courses = [{'teaching_id': teaching.id, 'course_code': teaching.course.course_code,'course_name': teaching.course.course_name, 'semester': teaching.semester.id} for teaching in teachings]
+        return Response(courses, status=status.HTTP_200_OK)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Get course lecturers
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_courses_lecturers(request):
+    """
+    Get all courses lecturers
+    """
+    if request.method == 'GET':
+        teachings = Teaching.objects.all()
+        courses = [{'teaching_id': teaching.id, 'course_code': teaching.course.course_code, 'course_name': teaching.course.course_name, 'semester': teaching.semester.id, 'full_name': teaching.lecturer.user.full_name, 'lecturer_id': teaching.lecturer.id} for teaching in teachings]
+        return Response(courses, status=status.HTTP_200_OK)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Admin assign lecturer courses
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def allocate_lecturer_course(request, lecturer_id):
+    """
+    Admin assign Lecturer a course
+    """
+    if request.method == 'POST':
+        # Retrieve course_code and semester_id from request data
+        course_code = request.data.get('course_code')
+        semester_id = request.data.get('semester_id')
+
+        try:
+            # Retrieve lecturer object
+            lecturer = Lecturer.objects.get(id=lecturer_id)
+
+            # Retrieve course and semester objects
+            course = Course.objects.get(course_code=course_code)
+            semester = Semester.objects.get(id=semester_id)
+
+            # Check if the course is already assigned to the lecturer in the semester
+            existing_teaching = Teaching.objects.filter(
+                lecturer=lecturer, course=course, semester=semester).exists()
+
+            if existing_teaching:
+                return Response({'error': 'This course is already assigned to the lecturer in the selected semester.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create Teaching object to assign the course to the lecturer
+            teaching = Teaching.objects.create(
+                lecturer=lecturer, course=course, semester=semester)
+
+            return Response({'message': f'Course {course_code} assigned to lecturer {lecturer_id} for semester {semester_id}.'}, status=status.HTTP_201_CREATED)
+
+        except Lecturer.DoesNotExist:
+            return Response({'message': 'Lecturer not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Course.DoesNotExist:
+            return Response({'message': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Semester.DoesNotExist:
+            return Response({'message': 'Semester not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+
     

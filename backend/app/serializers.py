@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Student, Lecturer, Admin, Course
+from .models import CustomUser, Student, Lecturer, Admin, Course, Semester, Enrollment, ResultPermission
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -38,4 +38,14 @@ class AdminSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = '__all__'
+        fields = ['course_code', 'course_name', 'semester_number', 'level']
+
+class SemesterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Semester
+        fields = ['id', 'year_start', 'year_end', 'semester_number', 'is_current']
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollment
+        fields = ['course_code', 'student', 'semester', 'result_permission', 'exam_type', 'coursework_marks', 'exam_marks']

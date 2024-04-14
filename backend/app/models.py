@@ -1,6 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-    
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, user_type, password=None, **extra_fields):
@@ -26,7 +27,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(username, user_type, password, **extra_fields)
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     USER_TYPE_CHOICES = (
         ('student', 'Student'),
         ('lecturer', 'Lecturer'),
@@ -47,6 +48,14 @@ class CustomUser(AbstractBaseUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['user_type', 'email']
 
+    def has_perm(self, perm, obj=None):
+        # Handle custom permissions logic here
+        return True
+
+    def has_module_perms(self, app_label):
+        # Handle custom module permissions logic here
+        return True
+
     def __str__(self):
         return self.username
     
@@ -62,10 +71,9 @@ class Student(models.Model):
     def __str__(self):
         return self.reg_no
 
-
-
 class Lecturer(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    staff_no = models.CharField(max_length=100, null=True, blank=True)
 
 
 class Admin(models.Model):
@@ -73,5 +81,73 @@ class Admin(models.Model):
 
 
 class Course(models.Model):
-    course_code = models.CharField(max_length=30, unique=True)
+    SEMESTER_CHOICES = [
+        (1, 'I'),
+        (2, 'II'),
+    ]
+    course_code = models.CharField(primary_key=True, max_length=30, unique=True)
     course_name = models.CharField(max_length=200, unique=True)
+    level = models.IntegerField(default=None, null=True)
+    semester_number = models.IntegerField(choices=SEMESTER_CHOICES, null=True)
+
+class Semester(models.Model):
+    SEMESTER_CHOICES = [
+        (1, 'I'),
+        (2, 'II'),
+    ]
+    id = models.CharField(max_length=50, default="", blank=True, primary_key=True, unique=True)
+    year_start = models.IntegerField()
+    year_end = models.IntegerField()
+    semester_number = models.IntegerField(choices=SEMESTER_CHOICES, null=True)
+    is_current = models.BooleanField(default=False)
+
+   # Override the clean method to ensure id is generated automatically
+    def clean(self):
+        # Check if the object is new (not saved before)
+        if not self.pk:
+            # Generate id based on year_start, year_end, and semester_number
+            self.id = f"{self.year_start}/{self.year_end} - SEM {self.semester_number}"
+        super().clean()
+
+    # Override the save method to generate custom primary key
+    def save(self, *args, **kwargs):
+        # Call clean method to ensure id is generated
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class ResultPermission(models.Model):
+    course = models.OneToOneField(Course, on_delete=models.SET_NULL, null=True)
+    marks_published = models.BooleanField(default=False)
+
+class Enrollment(models.Model):
+    EXAM_TYPE_CHOICES = [
+        ('supplementary', 'Supplementary'),
+        ('first attempt', 'First Attempt'),
+    ]
+    course_code = models.ForeignKey(Course, null=True, on_delete=models.SET_NULL)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, null=True, on_delete=models.SET_NULL)
+    coursework_marks = models.IntegerField(null=True, default=0)
+    exam_marks = models.IntegerField(null=True, default=0)
+    exam_type = models.CharField(
+        max_length=100, choices=EXAM_TYPE_CHOICES, default='first attempt')
+    result_permission = models.ForeignKey(ResultPermission, null=True, on_delete=models.SET_NULL)
+    grade = models.CharField(max_length=1, default='', null=True)
+
+    class Meta:
+        # Define unique constraint for student and course_code combination
+        unique_together = ('student', 'course_code')
+
+class Teaching(models.Model):
+    course = models.ForeignKey(
+        Course, null=True, on_delete=models.SET_NULL)
+    lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
+    semester = models.ForeignKey(
+        Semester, null=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        # Define unique constraint for lecturer and course combination
+        unique_together = ('lecturer', 'course')
+
+

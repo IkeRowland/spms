@@ -7,6 +7,8 @@ const initialState = {
   error: null,
   userInfo: userInfoFromLocalStorage,
   students: [],
+  myCourses: [],
+  enrolled: false,
 };
 
 export const userSlice = createSlice({
@@ -51,10 +53,35 @@ export const userSlice = createSlice({
     getStudentsFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    getMyCoursesStart: (state) => {
+      state.loading = true;
+      state.error = false;
+    },
+    getMyCoursesSuccess: (state, action) => {
+      state.loading = false;
+      state.myCourses = action.payload;
+    },
+    getMyCoursesFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    enrollCoursesStart: (state) => {
+      state.loading = true;
+      state.error = false;
+      state.enrolled = false;
+    },
+    enrollCoursesSuccess: (state) => {
+      state.loading = false;
+      state.enrolled = true;
+    },
+    enrollCoursesFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     }
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail } = userSlice.actions;
 
 export default userSlice.reducer;

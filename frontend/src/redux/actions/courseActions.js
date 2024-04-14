@@ -11,6 +11,8 @@ import {
   getCoursesSuccess,
 } from "../slices/courseSlice";
 import axios from "redaxios";
+import { enrollCoursesFail, enrollCoursesStart, enrollCoursesSuccess, getMyCoursesFail, getMyCoursesStart, getMyCoursesSuccess } from "../slices/userSlices";
+import { logout } from "./userActions";
 
 export const createCourse = (courseData) => async (dispatch) => {
   try {
@@ -35,6 +37,69 @@ export const getCourses = () => async (dispatch) => {
     dispatch(getCoursesFail(errMsg));
   }
 };
+
+// Get user Courses
+export const getMyCourses = () => async (dispatch, getState) => {
+  try {
+    dispatch(getMyCoursesStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+
+    const {data} = await axios.get(`${BASE_URL}/courses/enrolled/`, config);
+    dispatch(getMyCoursesSuccess(data))
+  } catch (err) {
+    const errMsg = err?.data
+      ? err.data?.message || err.data?.detail
+      : err.statusText;
+      if (
+        errMsg === "Authentication credentials were not provided." ||
+        errMsg === "Given token not valid for any token type"
+      ) {
+        dispatch(logout());
+      }
+        dispatch(getMyCoursesFail(errMsg));
+  }
+};
+
+// Current user enroll courses
+export const enrollCourses = (courseData) => async(dispatch, getState) => {
+  try{
+    dispatch(enrollCoursesStart())
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+    await axios.post(`${BASE_URL}/courses/enroll/`, courseData, config)
+    dispatch(enrollCoursesSuccess());
+  }catch (err){
+    console.log(err);
+    const errMsg = err?.data && err?.data?.length 
+      ? err.data[0]?.message : err?.data ? err.data?.message || err.data?.detail
+      : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    }
+    dispatch(enrollCoursesFail(errMsg));
+
+  }
+}
 
 export const deleteCourse = (course_id) => async (dispatch) => {
   try {

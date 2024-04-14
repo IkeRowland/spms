@@ -18,8 +18,19 @@ const Tobbar = () => {
           </span>
         </span>
         <span className='text-sm text-gray-600 text-right'>
-          <h6 className='uppercase'>{userInfo?.user?.full_name}</h6>
-          <p>Year {current_year - userInfo?.user?.year_joined}</p>
+          {userInfo?.user?.user_type === "admin" ? (
+            <div className="flex gap-3 items-center">
+              <h6 className='capitalize py-1'>{userInfo?.user?.username}</h6>
+              <span className='bg-gray-900 text-white px-2 py-1 rounded'>
+                Admin
+              </span>
+            </div>
+          ) : (
+            <>
+              <h6 className='uppercase'>{userInfo?.user?.full_name}</h6>
+              <p>Year {current_year - userInfo?.user?.year_joined}</p>
+            </>
+          )}
         </span>
         <Link to='/profile'>
           <img

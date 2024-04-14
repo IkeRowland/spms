@@ -9,8 +9,15 @@ import ResultPage from "./pages/ResultPage";
 import CoursePage from "./pages/CoursePage";
 import FeedbackPage from "./pages/FeedbackPage";
 import StudentsPage from "./pages/StudentsPage";
+import { useEffect } from "react";
+import { getSemesters } from "./redux/actions/semesterActions";
+import { useDispatch } from "react-redux";
 
 function App() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getSemesters());
+  }, [dispatch]);
   return (
     <Router>
       <Routes>

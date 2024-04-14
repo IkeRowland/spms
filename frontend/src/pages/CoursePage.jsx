@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createCourse, getCourses } from "../redux/actions/courseActions";
+import { createCourse, getCourses, getMyCourses } from "../redux/actions/courseActions";
 
 const CoursePage = () => {
   const dispatch = useDispatch();
@@ -8,7 +8,7 @@ const CoursePage = () => {
   const { loading, error, courses, success } = useSelector(
     (state) => state.course
   );
-  const {userInfo} = useSelector((state) => state.user);
+  const {userInfo, myCourses, loading: loadingUser, error: errorUser} = useSelector((state) => state.user);
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
 
@@ -31,6 +31,10 @@ const CoursePage = () => {
     dispatch(getCourses());
   }, [dispatch, success]);
 
+  useEffect(() => {
+    dispatch(getMyCourses())
+  }, [dispatch])
+
   return (
     <div className='bg-gray-100 p-4'>
       <h2 className='text-xl font-bold mb-3'>Courses</h2>
@@ -39,6 +43,12 @@ const CoursePage = () => {
           <div className='bg-white p-2'>
             {userInfo?.user?.user_type === "student" ? (
               <>
+                {loadingUser && <p>Loading....</p>}
+                {errorUser && (
+                  <p className='bg-red-500 p-4 rounded text-oranger-500'>
+                    {errorUser}
+                  </p>
+                )}
                 <h4 className='text-center font-md-bold'>2024/2</h4>
                 <table className='w-full border'>
                   <thead className=''>
@@ -54,126 +64,25 @@ const CoursePage = () => {
                     </tr>
                   </thead>
                   <tbody className=''>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>1</td>
-                      <td className='border border-gray-300 p-2'>ICS 215</td>
-                      <td className='border border-gray-300 p-2'>
-                        Object Orienred
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>2</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        Supplemtary
-                      </td>
-                    </tr>{" "}
-                    <tr>
-                      <td className='border border-gray-300 p-2'>3</td>
-                      <td className='border border-gray-300 p-2'>SMA 128</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Discrete Math
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        Supplemtary
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>3</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>4</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>5</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>6</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        Supplemtary
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>7</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>8</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>9</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='border border-gray-300 p-2'>10</td>
-                      <td className='border border-gray-300 p-2'>ICS 350</td>
-                      <td className='border border-gray-300 p-2'>
-                        {" "}
-                        Calculus 1
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        First Attempt
-                      </td>
-                    </tr>
+                    {
+                      myCourses.map((course, index) => {
+                        const {enrollment_id, course_code, course_name, exam_type} = course;
+                        return (
+                          <tr key={enrollment_id}>
+                            <td className='border border-gray-300 p-2'>{index + 1}</td>
+                            <td className='border border-gray-300 p-2'>
+                              {course_code}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                             {course_name}
+                            </td>
+                            <td className='border border-gray-300 p-2 capitalize'>
+                              {exam_type}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    }
                   </tbody>
                 </table>
               </>

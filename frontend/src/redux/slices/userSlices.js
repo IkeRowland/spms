@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   userInfo: userInfoFromLocalStorage,
   students: [],
+  myCourses: [],
 };
 
 export const userSlice = createSlice({
@@ -51,10 +52,22 @@ export const userSlice = createSlice({
     getStudentsFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    getMyCoursesStart: (state) => {
+      state.loading = true;
+      state.error = false;
+    },
+    getMyCoursesSuccess: (state, action) => {
+      state.loading = false;
+      state.myCourses = action.payload;
+    },
+    getMyCoursesFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     }
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail } = userSlice.actions;
 
 export default userSlice.reducer;

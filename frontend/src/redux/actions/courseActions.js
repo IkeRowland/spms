@@ -11,6 +11,8 @@ import {
   getCoursesSuccess,
 } from "../slices/courseSlice";
 import axios from "redaxios";
+import { getMyCoursesFail, getMyCoursesStart, getMyCoursesSuccess } from "../slices/userSlices";
+import { logout } from "./userActions";
 
 export const createCourse = (courseData) => async (dispatch) => {
   try {
@@ -33,6 +35,38 @@ export const getCourses = () => async (dispatch) => {
   } catch (err) {
     const errMsg = err?.data ? err.data.message : err.statusText;
     dispatch(getCoursesFail(errMsg));
+  }
+};
+
+// Get user Courses
+export const getMyCourses = () => async (dispatch, getState) => {
+  try {
+    dispatch(getMyCoursesStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+
+    const {data} = await axios.get(`${BASE_URL}/courses/enrolled/`, config);
+    dispatch(getMyCoursesSuccess(data))
+  } catch (err) {
+    const errMsg = err?.data
+      ? err.data?.message || err.data?.detail
+      : err.statusText;
+      if (
+        errMsg === "Authentication credentials were not provided." ||
+        errMsg === "Given token not valid for any token type"
+      ) {
+        dispatch(logout());
+      }
+        dispatch(getMyCoursesFail(errMsg));
+
   }
 };
 

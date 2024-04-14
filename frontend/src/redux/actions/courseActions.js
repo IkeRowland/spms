@@ -11,7 +11,7 @@ import {
   getCoursesSuccess,
 } from "../slices/courseSlice";
 import axios from "redaxios";
-import { getMyCoursesFail, getMyCoursesStart, getMyCoursesSuccess } from "../slices/userSlices";
+import { enrollCoursesFail, enrollCoursesStart, enrollCoursesSuccess, getMyCoursesFail, getMyCoursesStart, getMyCoursesSuccess } from "../slices/userSlices";
 import { logout } from "./userActions";
 
 export const createCourse = (courseData) => async (dispatch) => {
@@ -66,9 +66,40 @@ export const getMyCourses = () => async (dispatch, getState) => {
         dispatch(logout());
       }
         dispatch(getMyCoursesFail(errMsg));
-
   }
 };
+
+// Current user enroll courses
+export const enrollCourses = (courseData) => async(dispatch, getState) => {
+  try{
+    dispatch(enrollCoursesStart())
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+    await axios.post(`${BASE_URL}/courses/enroll/`, courseData, config)
+    dispatch(enrollCoursesSuccess());
+  }catch (err){
+    console.log(err);
+    const errMsg = err?.data && err?.data?.length 
+      ? err.data[0]?.message : err?.data ? err.data?.message || err.data?.detail
+      : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    }
+    dispatch(enrollCoursesFail(errMsg));
+
+  }
+}
 
 export const deleteCourse = (course_id) => async (dispatch) => {
   try {

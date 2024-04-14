@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createCourse, getCourses, getMyCourses } from "../redux/actions/courseActions";
+import { createCourse, enrollCourses, getCourses, getMyCourses } from "../redux/actions/courseActions";
 
 const CoursePage = () => {
   const dispatch = useDispatch();
@@ -8,9 +8,42 @@ const CoursePage = () => {
   const { loading, error, courses, success } = useSelector(
     (state) => state.course
   );
-  const {userInfo, myCourses, loading: loadingUser, error: errorUser} = useSelector((state) => state.user);
+  const {semesters} = useSelector((state) => state.semester);
+  const {userInfo, myCourses, loading: loadingUser, error: errorUser, enrolled} = useSelector((state) => state.user);
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
+  const [semester, setSemester] = useState("")
+
+ const [enrollCourseData, setEnrollCourseData] = useState(
+   Array.from({ length: 5 }, () => ({
+     course_code: "",
+     semester_id: semester,
+     exam_type: "first attempt",
+   }))
+ );
+
+ 
+const handleEnrollCourseSubmit = (e) => {
+  e.preventDefault()
+  const updatedEnrollCourseData = enrollCourseData.map((course) => ({
+    ...course,
+    semester_id: semester,
+  })).filter((course) => course.course_code !== '');
+  dispatch(enrollCourses(updatedEnrollCourseData))
+};
+
+ const handleCourseEnrollInputChange = (index, key, value) => {
+   const newData = enrollCourseData.map((item, i) => {
+     if (i === index) {
+       return {
+         ...item,
+         [key]: value,
+       };
+     }
+     return item;
+   });
+   setEnrollCourseData(newData);
+ };
 
 
   const handleCreateCourse = (e) => {
@@ -34,6 +67,25 @@ const CoursePage = () => {
   useEffect(() => {
     dispatch(getMyCourses())
   }, [dispatch])
+
+  useEffect(() => {
+    if (errorUser){
+      setEnrollCourseData(
+        Array.from({ length: 5 }, () => ({
+          course_code: "",
+          semester_id: '',
+          exam_type: "first attempt",
+        }))
+      );
+    }
+  }, [errorUser])
+
+
+  useEffect(() => {
+    if (enrolled){
+      dispatch(getMyCourses());
+    }
+  }, [dispatch, enrolled])
 
   return (
     <div className='bg-gray-100 p-4'>
@@ -64,25 +116,30 @@ const CoursePage = () => {
                     </tr>
                   </thead>
                   <tbody className=''>
-                    {
-                      myCourses.map((course, index) => {
-                        const {enrollment_id, course_code, course_name, exam_type} = course;
-                        return (
-                          <tr key={enrollment_id}>
-                            <td className='border border-gray-300 p-2'>{index + 1}</td>
-                            <td className='border border-gray-300 p-2'>
-                              {course_code}
-                            </td>
-                            <td className='border border-gray-300 p-2'>
-                             {course_name}
-                            </td>
-                            <td className='border border-gray-300 p-2 capitalize'>
-                              {exam_type}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    }
+                    {myCourses.map((course, index) => {
+                      const {
+                        enrollment_id,
+                        course_code,
+                        course_name,
+                        exam_type,
+                      } = course;
+                      return (
+                        <tr key={enrollment_id}>
+                          <td className='border border-gray-300 p-2'>
+                            {index + 1}
+                          </td>
+                          <td className='border border-gray-300 p-2'>
+                            {course_code}
+                          </td>
+                          <td className='border border-gray-300 p-2'>
+                            {course_name}
+                          </td>
+                          <td className='border border-gray-300 p-2 capitalize'>
+                            {exam_type}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </>
@@ -129,7 +186,22 @@ const CoursePage = () => {
           {userInfo?.user?.user_type === "student" && (
             <>
               <h2 className='text-xl font-bold p-2'> Register Course</h2>
-              <table className=''>
+              <div className='w-full flex items-center justify-between'>
+                <h6>Select Semester</h6>
+                <select className='border border-gray-300 p-2 outline-none my-2' onChange={(e) => setSemester(e.target.value)}>
+                  <option>--Select Semester--</option>
+                 {
+                  semesters.map((semester) => {
+                    return (
+                      <option key={semester.id} value={semester.id}>
+                        {semester.id}
+                      </option>
+                    );
+                  })
+                 }
+                </select>
+              </div>
+              <table className='w-full'>
                 <thead>
                   <tr>
                     <th className='border border-gray-300 p-2'>Course Code</th>
@@ -137,82 +209,49 @@ const CoursePage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className='outline-none border border-gray-300 p-2'>
-                      <input
-                        placeholder='ICS 215'
-                        className='w-28 outline-none'
-                      ></input>
-                    </td>
-                    <td className='border border-gray-300 p-2'>
-                      <select className='outline-none'>
-                        <option>First Attempt</option>
-                        <option>Suplement</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className='border border-gray-300 p-2'>
-                      <input
-                        placeholder='ICS 215'
-                        className='w-28 outline-none'
-                      ></input>
-                    </td>
-                    <td className='border border-gray-300 p-2'>
-                      <select className='outline-none'>
-                        <option>First Attempt</option>
-                        <option>Suplement</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className='border border-gray-300 p-2'>
-                      <input
-                        placeholder='ICS 215'
-                        className='w-28 outline-none'
-                      ></input>
-                    </td>
-                    <td className=' border border-gray-300 p-2'>
-                      <select className='outline-none'>
-                        <option>First Attempt</option>
-                        <option>Suplement</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className='border border-gray-300 p-2'>
-                      <input
-                        placeholder='ICS 215'
-                        className='w-28 outline-none'
-                      ></input>
-                    </td>
-                    <td className='bordewr border-gray-300 p-2'>
-                      <select className='outline-none'>
-                        <option>First Attempt</option>
-                        <option>Suplement</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className='border border-gray-300 p-2'>
-                      <input
-                        placeholder='ICS 215'
-                        className='w-28 outline-none'
-                      ></input>
-                    </td>
-                    <td className='border boreder-gray-300 p-2'>
-                      <select className='outline-none'>
-                        <option>First Attempt</option>
-                        <option>Suplement</option>
-                      </select>
-                    </td>
-                  </tr>
+                  {
+                    enrollCourseData.map((courseInput, index) => {
+                      return (
+                        <tr key={index}>
+                          <td className='outline-none border border-gray-300 p-2'>
+                            <input
+                              placeholder='ICS 215'
+                              className='w-28 outline-none'
+                              value={courseInput.course_code}
+                              onChange={(e) =>
+                                handleCourseEnrollInputChange(
+                                  index,
+                                  "course_code",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className='border border-gray-300 p-2'>
+                            <select
+                              className='outline-none'
+                              onChange={(e) =>
+                                handleCourseEnrollInputChange(
+                                  index,
+                                  "exam_type",
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value='first attempt'>First Attempt</option>
+                              <option value='supplementary'>Suplementary</option>
+                            </select>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
                 </tbody>
               </table>
               <div className='flex justify-center'>
                 <button
                   className='bg-gray-900 text-white hover:cusor-pointer 
-           my-3 p-2 rounded '
+           my-3 p-2 rounded ' onClick={handleEnrollCourseSubmit}
                 >
                   Regester Courses
                 </button>

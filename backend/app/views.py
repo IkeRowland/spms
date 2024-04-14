@@ -442,6 +442,10 @@ def enroll_course(request):
         errors = []
         for obj in course_data:
             course_code = obj.get('course_code')
+            try:
+                Course.objects.get(course_code=course_code)
+            except Course.DoesNotExist:
+                return Response({"message": "Invalid course code!"}, status=status.HTTP_404_NOT_FOUND)
             permission = ResultPermission.objects.get(
                 course__course_code=course_code)
             student = Student.objects.get(user_id=request.user.id)

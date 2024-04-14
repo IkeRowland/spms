@@ -1,10 +1,18 @@
+import { useEffect } from "react";
 import GradesPieChart from "../components/charts/GradesPieChart";
 import YearStats from "../components/charts/YearStats";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import { getSemesters } from "../redux/actions/semesterActions";
 
 const HomePage = () => {
+  const dispatch = useDispatch();
+
   const {userInfo} = useSelector((state) => state.user);
   const current_year = new Date().getFullYear()
+
+  useEffect(() => {
+    dispatch(getSemesters())
+  }, [dispatch])
   return (
     <>
       {userInfo?.user?.user_type === "student" && (

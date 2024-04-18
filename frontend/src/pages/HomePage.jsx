@@ -170,11 +170,20 @@ const HomePage = () => {
       )}
       {userInfo?.user?.user_type === "lecturer" && (
         <div className='bg-slate-100 shadow-sm p-4'>
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-3'>
-            <div className='col-span-1 bg-white p-4'>Col 1 For Lecturer</div>
-            <div className='col-span-1 bg-white p-4'>Col 2</div>
-            <div className='col-span-1 bg-white p-4'>Col 3</div>
-            <div className='col-span-1 bg-white p-4'>Col 4</div>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+            <div className='col-span-1 p-4 bg-gray-900 text-white flex flex-col justify-center items-center rounded'>
+              <div className='h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center text-gray-900 my-3'>
+                <CastForEducationIcon style={{ fontSize: "34px" }} />
+              </div>
+              <h2 className='text-2xl'>My Courses</h2>
+              <h4 className='text-xl'>3</h4>
+            </div>
+            <div className='col-span-1 p-4 bg-amber-500 text-white flex flex-col justify-center items-center rounded'>
+              <h2 className='text-2xl'>Current Semester</h2>
+              <h4 className='bg-gray-900 my-3 px-4 py-2 rounded text-white'>
+                2023/2024 - SEM 2
+              </h4>
+            </div>
           </div>
         </div>
       )}

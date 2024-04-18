@@ -2,11 +2,14 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "redaxios";
 import { BASE_URL } from "../URL";
+import Papa from "papaparse";
+
 
 const ResultPage = () => {
   const { courses } = useSelector((state) => state.course);
   const { semesters } = useSelector((state) => state.semester);
-  const {userInfo} = useSelector((state) => state.user)
+  const {userInfo} = useSelector((state) => state.user);
+  const [classList, setClassList] = useState(null);
 
   const [selectedSem, setSelectedSem] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -19,11 +22,38 @@ const ResultPage = () => {
 
     try {
       const { data } = await axios.post(`${BASE_URL}/courses/students/`, obj);
-      console.log(data);
+      setClassList(data);
     } catch (err) {
       console.log(err);
     }
   };
+
+  // Downloading class List
+
+    const getDataForDownload = () => {
+      const data = classList?.students.map((student, index) => ({
+        "S/NO": index + 1,
+        "REG NO": student.reg_no,
+        "FULL NAME": student.student_name,
+      }));
+      return data;
+    };
+
+    const handleDownload = () => {
+      const data = getDataForDownload();
+      const csvData = Papa.unparse(data, { header: true });
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "class_list.csv");
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
   return (
     <>
       {/* For the Lecturer */}
@@ -31,15 +61,16 @@ const ResultPage = () => {
         <section className='bg-slate-100 shadow-sm p-4'>
           <div className='flex justify-between items-center'>
             <h3 className='mb-2 text-xl font-semibold'>Results</h3>
-            <div className='flex gap-3 items-center'>
+            <div className='flex gap-3 items-center my-2'>
               <h6 className='text-gray-900'>Select Course:</h6>
               <select
                 className='border focus:outline-none p-2'
                 onChange={(e) => setSelectedCourse(e.target.value)}
               >
+                <option value=''>--Select Course--</option>
                 {courses.map((course) => {
                   return (
-                    <option key={course.course_id} value={course.course_id}>
+                    <option key={course.course_id} value={course.course_code}>
                       {course.course_code} - {course.course_name}
                     </option>
                   );
@@ -52,6 +83,7 @@ const ResultPage = () => {
                 className='border focus:outline-none p-2'
                 onChange={(e) => setSelectedSem(e.target.value)}
               >
+                <option value=''>--Select Semester--</option>
                 {semesters.map((semester) => {
                   return (
                     <option key={semester.id} value={semester.id}>
@@ -68,15 +100,25 @@ const ResultPage = () => {
               Get Class List
             </button>
           </div>
-          <div className='flex justify-between'>
-            <h3 className='text-xl uppercase text-gray-600 mt-5 mb-3'>
-              ICS 215 - Object Oriented Programming
-            </h3>
-            <h3 className='text-xl uppercase text-gray-600 mt-5 mb-3'>
-              2023/2024 - SEM 2
-            </h3>
-          </div>
-          <section className='bg-white overflow-x-auto p-4'>
+          {classList && (
+            <div className='flex justify-between items-end my-3'>
+              <h3 className='text-xl uppercase text-gray-600'>
+                {classList?.course}
+              </h3>
+              <h3 className='text-xl uppercase text-gray-600'>
+                {classList?.semester}
+              </h3>
+              {classList?.students.length > 0 && (
+                <button
+                  className='bg-green-500 px-4 py-1 text-white rounded'
+                  onClick={handleDownload}
+                >
+                  Download Class List
+                </button>
+              )}
+            </div>
+          )}
+          <section className='w-full bg-white overflow-x-auto p-4'>
             <table className='w-full text-gray-600 border border-collapse border-gray-300'>
               <thead>
                 <tr>
@@ -88,7 +130,10 @@ const ResultPage = () => {
                     Full Names
                   </th>
                   <th className='border border-gray-300 p-2 text-left'>
-                    Marks
+                    CAT Marks
+                  </th>
+                  <th className='border border-gray-300 p-2 text-left'>
+                    Exam Marks
                   </th>
                   <th className='border border-gray-300 p-2 text-left'>
                     Grade
@@ -99,259 +144,50 @@ const ResultPage = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className='border border-gray-300 px-2'>1</td>
-                  <td className='border border-gray-300 px-2'>E46/6272/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    John Doe White
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>A</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>2</td>
-                  <td className='border border-gray-300 px-2'>E46/6273/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Jane Doe Black
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>B</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                {/* Repeat this pattern for 10 more rows */}
-                <tr>
-                  <td className='border border-gray-300 px-2'>3</td>
-                  <td className='border border-gray-300 px-2'>E46/6274/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Michael Johnson
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>C</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>4</td>
-                  <td className='border border-gray-300 px-2'>E46/6275/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Emily Brown
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>D</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>5</td>
-                  <td className='border border-gray-300 px-2'>E46/6276/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    David Lee
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>E</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>6</td>
-                  <td className='border border-gray-300 px-2'>E46/6277/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Sophia Garcia
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>F</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>7</td>
-                  <td className='border border-gray-300 px-2'>E46/6278/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Olivia Martinez
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>G</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>8</td>
-                  <td className='border border-gray-300 px-2'>E46/6279/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Noah Taylor
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>H</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>9</td>
-                  <td className='border border-gray-300 px-2'>E46/6280/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Emma Johnson
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>I</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>10</td>
-                  <td className='border border-gray-300 px-2'>E46/6281/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Liam Brown
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>J</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>11</td>
-                  <td className='border border-gray-300 px-2'>E46/6282/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Isabella Lee
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>K</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 px-2'>12</td>
-                  <td className='border border-gray-300 px-2'>E46/6283/2021</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    Ethan Martinez
-                  </td>
-                  <td className='border border-gray-300'>
-                    <input
-                      type='number'
-                      className='w-full px-2 focus:outline-none text-gray-600'
-                    />
-                  </td>
-                  <td className='border border-gray-300 px-2 uppercase'>L</td>
-                  <td className='border border-gray-300 px-2 uppercase'>
-                    <input
-                      type='text'
-                      placeholder='comment'
-                      className='w-full px-2 focus:outline-none'
-                    />
-                  </td>
-                </tr>
+                {classList?.students.map((student) => {
+                  return (
+                    <tr key={student.student_id}>
+                      <td className='border border-gray-300 px-2'>1</td>
+                      <td className='border border-gray-300 px-2'>
+                        {student.reg_no}
+                      </td>
+                      <td className='border border-gray-300 px-2 uppercase'>
+                        {student.student_name}
+                      </td>
+                      <td className='border border-gray-300'>
+                        <input
+                          type='number'
+                          className='w-full px-2 focus:outline-none text-gray-600'
+                          value={student.coursework_marks}
+                        />
+                      </td>
+                      <td className='border border-gray-300'>
+                        <input
+                          type='number'
+                          className='w-full px-2 focus:outline-none text-gray-600'
+                          value={student.exam_marks}
+                        />
+                      </td>
+                      <td className='border border-gray-300 px-2 uppercase'>
+                        {student.grade}
+                      </td>
+                      <td className='border border-gray-300 px-2 uppercase'>
+                        <input
+                          type='text'
+                          placeholder='comment'
+                          className='w-full px-2 focus:outline-none'
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+                {classList?.students.length === 0 && (
+                  <tr className='p-2'>
+                    <td className='text-orange-600'>
+                      No Enrolled students in this course!
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </section>

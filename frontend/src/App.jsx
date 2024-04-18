@@ -13,6 +13,8 @@ import { getSemesters } from "./redux/actions/semesterActions";
 import { useDispatch } from "react-redux";
 import LecturerPage from "./pages/LecturerPage";
 import LecturerDetailsPage from "./pages/LecturerDetailsPage";
+import AdminCourseList from "./pages/AdminCourseList";
+import EditCoursePage from "./pages/EditCoursePage";
 
 function App() {
   const dispatch = useDispatch();
@@ -30,6 +32,8 @@ function App() {
           <Route path='/lecturers' element={<LecturerPage />} />
           <Route path='/lecturers/:id' element={<LecturerDetailsPage />} />
           <Route path='/courses' element={<CoursePage />} />
+          <Route path='/courses/list' element={<AdminCourseList />} />
+          <Route path='/courses/:courseId' element={<EditCoursePage />} />
         </Route>
         <Route path='/login' element={<LoginPage />} />
         <Route path='/reset-password' element={<ResetPassPage />} />

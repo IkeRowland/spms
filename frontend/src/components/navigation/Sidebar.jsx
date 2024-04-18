@@ -1,9 +1,10 @@
 import {NavLink} from "react-router-dom" 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import InsightsIcon from "@mui/icons-material/Insights";
-import QuizIcon from "@mui/icons-material/Quiz";
-import ForumIcon from "@mui/icons-material/Forum";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import CastForEducationIcon from "@mui/icons-material/CastForEducation";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import SchoolIcon from "@mui/icons-material/School";
 import LogoutIcon from "@mui/icons-material/Logout";
 import {useDispatch, useSelector} from "react-redux"
 import { logout } from "../../redux/actions/userActions";
@@ -49,7 +50,7 @@ const Sidebar = () => {
                     : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
                 }
               >
-                <QuizIcon />
+                <SchoolIcon />
                 <h6>Students</h6>
               </NavLink>
             </li>
@@ -62,7 +63,7 @@ const Sidebar = () => {
                     : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
                 }
               >
-                <QuizIcon />
+                <PsychologyIcon />
                 <h6>Lecturers</h6>
               </NavLink>
             </li>
@@ -75,7 +76,7 @@ const Sidebar = () => {
                     : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
                 }
               >
-                <ForumIcon />
+                <CastForEducationIcon />
                 <h6>Courses</h6>
               </NavLink>
             </li>
@@ -133,19 +134,6 @@ const Sidebar = () => {
             </li>
             <li className='my-1'>
               <NavLink
-                to='/students'
-                className={({ isActive }) =>
-                  isActive
-                    ? "flex gap-3 p-2 bg-gray-200 text-gray-900"
-                    : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
-                }
-              >
-                <QuizIcon />
-                <h6>Students</h6>
-              </NavLink>
-            </li>
-            <li className='my-1'>
-              <NavLink
                 to='/courses'
                 className={({ isActive }) =>
                   isActive
@@ -153,7 +141,7 @@ const Sidebar = () => {
                     : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
                 }
               >
-                <ForumIcon />
+                <CastForEducationIcon />
                 <h6>Courses</h6>
               </NavLink>
             </li>
@@ -209,19 +197,6 @@ const Sidebar = () => {
                 <h6>Results</h6>
               </NavLink>
             </li>
-            {/* <li className='my-1'>
-              <NavLink
-                to='/students'
-                className={({ isActive }) =>
-                  isActive
-                    ? "flex gap-3 p-2 bg-gray-200 text-gray-900"
-                    : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
-                }
-              >
-                <QuizIcon />
-                <h6>Students</h6>
-              </NavLink>
-            </li> */}
             <li className='my-1'>
               <NavLink
                 to='/courses'
@@ -231,7 +206,7 @@ const Sidebar = () => {
                     : "flex gap-3 p-2 hover:bg-gray-200 hover:text-gray-900"
                 }
               >
-                <ForumIcon />
+                <CastForEducationIcon />
                 <h6>Courses</h6>
               </NavLink>
             </li>

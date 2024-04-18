@@ -299,7 +299,7 @@ def delete_course(request, course_id):
             return Response({"message": "Course not found!"}, status=status.HTTP_404_NOT_FOUND)
 
 # Get all students enrolled in a given course at a given semester
-@api_view(['GET'])
+@api_view(['POST'])
 def get_course_students(request):
     """
     Get all students enrolled in a given 
@@ -334,8 +334,7 @@ def get_course_students(request):
         course_code__course_code=course_code, semester_id=semester_id)
 
     # Extract student details from enrollments
-    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks':
-                 enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks': enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
     return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
 

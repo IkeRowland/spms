@@ -583,3 +583,20 @@ def admin_get_lecturer_courses(request, lecturer_id):
         courses = [{"teaching_id": teaching.id, "course_code": teaching.course.course_code, "course_name": teaching.course.course_name, "semester": teaching.semester.id} for teaching in teachings]
         return Response(courses, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)
+
+# Admin get lecturer details
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_lecturer_details(request, lecturer_id):
+    if request.method == 'GET':
+        try:
+            lecturer = Lecturer.objects.get(id=lecturer_id)
+            info = {
+                "full_name": lecturer.user.full_name,
+                "email": lecturer.user.email,
+                "contact": lecturer.user.contact
+            }
+            return Response(info, status=status.HTTP_200_OK)
+        except Lecturer.DoesNotExist:
+            return Response({"message": "Lecturer not found!"}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)

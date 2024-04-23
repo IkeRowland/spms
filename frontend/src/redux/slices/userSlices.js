@@ -12,6 +12,7 @@ const initialState = {
   enrolled: false,
   deleted: false,
   created: true,
+  lecturerInfo: {},
 };
 
 export const userSlice = createSlice({
@@ -101,6 +102,10 @@ export const userSlice = createSlice({
     deleteUserSuccess: (state) => {
       state.deleted = true;
     },
+    getLecturerInfoSuccess: (state, action) => {
+      state.loading = false;
+      state.lecturerInfo = action.payload;
+    },
     actionStart: (state) => {
       state.loading = false;
       state.error = null;
@@ -118,6 +123,6 @@ export const userSlice = createSlice({
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail, addLecturesStart, addLecturesSuccess, addLecturesFail, getLecturesSuccess, actionStart, actionFail, deleteUserSuccess, resetState } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail, addLecturesStart, addLecturesSuccess, addLecturesFail, getLecturesSuccess, actionStart, actionFail, deleteUserSuccess, resetState, getLecturerInfoSuccess } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -65,7 +65,7 @@ export const courseSlice = createSlice({
       state.assigned = true;
     },
     getLecturerCoursesSuccess: (state, action) => {
-        state.loading = true;
+        state.loading = false;
         state.userCourses = action.payload;
     },
     resetCourseState: (state) => {

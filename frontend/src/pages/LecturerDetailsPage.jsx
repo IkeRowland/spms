@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { assignLecturerCourse, getCourses, getLecturerCourses } from "../redux/actions/courseActions";
 import { getSemesters } from "../redux/actions/semesterActions";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { resetCourseState } from "../redux/slices/courseSlice";
+import { getLecturerDetails } from "../redux/actions/userActions";
 const LecturerDetailsPage = () => {
   const dispatch = useDispatch();
   const params = useParams();
 
   const {userCourses, loading, error, assigned} = useSelector((state) => state.course);
+  const {lecturerInfo} = useSelector((state) => state.user);
 
   const lecturerId = params?.id ? Number(params.id) : null;
   const { courses } = useSelector((state) => state.course);
@@ -48,13 +50,26 @@ const LecturerDetailsPage = () => {
   useEffect(() => {
     if (lecturerId){
       dispatch(getLecturerCourses(lecturerId));
+      dispatch(getLecturerDetails(lecturerId))
     }
   }, [dispatch, lecturerId])
   return (
     <div className='bg-slate-200 p-4'>
-      <h2 className='text-center my-5 text-2xl'>
-        Lecturer View Page: RABAN WAKUSU
-      </h2>
+      <div className='flex justify-between items-center'>
+        <h2 className='my-3 text-md'>
+          Lecturer: {lecturerInfo.full_name}
+        </h2>
+        <h2 className='my-3 text-md'>Email: {lecturerInfo.email}</h2>
+        <h2 className='my-3 text-md'>
+          Contact: {lecturerInfo.contact}
+        </h2>
+        <Link
+          to='/lecturers'
+          className='bg-green-500 text-white border px-4 py-1'
+        >
+          View all Lecturers
+        </Link>
+      </div>
       <section className='grid grid-cols-1 md:grid-cols-5 gap-5'>
         <div className='col-span-1 md:col-span-3 bg-white p-4'>
           <h6 className='text-2xl font-semibold text-gray-900 py-2'>

@@ -573,4 +573,13 @@ def allocate_lecturer_course(request, lecturer_id):
 
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
-    
+
+# Admin get lecturer courses
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_lecturer_courses(request, lecturer_id):
+    if request.method == 'GET':
+        teachings = Teaching.objects.filter(lecturer__id=lecturer_id)
+        courses = [{"teaching_id": teaching.id, "course_code": teaching.course.course_code, "course_name": teaching.course.course_name, "semester": teaching.semester.id} for teaching in teachings]
+        return Response(courses, status=status.HTTP_200_OK)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)

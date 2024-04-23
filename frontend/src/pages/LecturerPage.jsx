@@ -154,7 +154,7 @@ const LecturerPage = () => {
                   </td>
                   <td className='border border-gray-400 flex gap-3 p-2'>
                     <Link
-                      to={`/lecturers/1`}
+                      to={`/lecturers/${lecturer.lecturer_id}`}
                       className='bg-green-500 text-white rounded px-2 py-1 text-sm'
                     >
                       View

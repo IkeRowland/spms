@@ -5,13 +5,23 @@ const AdminCourseList = () => {
   const { courses } = useSelector((state) => state.course);
   return (
     <section>
-      <h2 className='text-2xl font-semibold mt-5 pb-3'>All Courses</h2>
+      <div className="flex justify-between items-center my-2">
+        <h2 className='text-2xl font-semibold '>All Courses</h2>
+        <Link
+          to='/courses/new'
+          className='bg-amber-500 text-white border px-4 py-1'
+        >
+          Add Course
+        </Link>
+      </div>
       <table className='w-full border mb-4'>
         <thead className=''>
-          <tr className='text-left'>
-            <th className='border border-gray-300 p-2'>ID</th>
+          <tr className='text-left bg-gray-200'>
+            <th className='border border-gray-300 p-2'>#</th>
             <th className='border border-gray-300 p-2'>Course Code</th>
             <th className='border border-gray=300 p-2'>Course Name</th>
+            <th className='border border-gray=300 p-2'>Year</th>
+            <th className='border border-gray=300 p-2'>Semester</th>
             <th className='border border-gray=300 p-2'>Actions</th>
           </tr>
         </thead>
@@ -26,11 +36,18 @@ const AdminCourseList = () => {
                 <td className='border border-gray-300 p-2'>
                   {course.course_name}
                 </td>
+                <td className='border border-gray-300 p-2'>{course.level}</td>
+                <td className='border border-gray-300 p-2'>
+                  {course.semester_number}
+                </td>
                 <td className='border border-gray-300 p-2 flex gap-3'>
-                  <Link to={`/courses/${course.course_code.replace(' ', '-')}`} className='bg-green-400 text-sm px-2 py-1 rounded text-white'>
+                  <Link
+                    to={`/courses/${course.course_code.replace(" ", "-")}`}
+                    className='bg-green-500 text-sm px-2 py-1 rounded text-white'
+                  >
                     Edit
                   </Link>
-                  <button className='bg-red-400 text-sm px-2 py-1 rounded text-white'>
+                  <button className='bg-red-500 text-sm px-2 py-1 rounded text-white'>
                     Delete
                   </button>
                 </td>
@@ -39,14 +56,6 @@ const AdminCourseList = () => {
           })}
         </tbody>
       </table>
-      <div className='my-1'>
-        <Link
-          to='/courses'
-          className='bg-green-500 text-white rounded px-4 py-2'
-        >
-          Add Course
-        </Link>
-      </div>
     </section>
   );
 };

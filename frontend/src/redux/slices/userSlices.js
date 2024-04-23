@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   userInfo: userInfoFromLocalStorage,
   students: [],
+  lecturers: [],
   myCourses: [],
   enrolled: false,
 };
@@ -41,6 +42,22 @@ export const userSlice = createSlice({
     addStudentsFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    addLecturesStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    addLecturesSuccess: (state, action) => {
+      state.loading = false;
+      state.lecturers = action.payload;
+    },
+    addLecturesFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    getLecturesSuccess: (state, action) => {
+      state.loading = false;
+      state.lecturers = action.payload;
     },
     getStudentsStart: (state) => {
       state.loading = true;
@@ -78,10 +95,18 @@ export const userSlice = createSlice({
     enrollCoursesFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    actionStart: (state) => {
+      state.loading = false;
+      state.error = null;
+    },
+    actionFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     }
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail, addLecturesStart, addLecturesSuccess, addLecturesFail, getLecturesSuccess, actionStart, actionFail } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { Link } from "react-router-dom";
-// import { useDispatch, useSelector } from "react-redux";
-// import { importStudents, listStudents } from "../redux/actions/userActions";
+import { useDispatch, useSelector } from "react-redux";
+import { importLecturers, listLecturers } from "../redux/actions/userActions";
+import CloseIcon from "@mui/icons-material/Close";
 
 const LecturerPage = () => {
-//   const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [lecturers, setLecturers] = useState([]);
-  const [file, setFile] = useState("")
+  const [file, setFile] = useState("");
+  const [successImport, setSuccessImport] = useState(null);
+
+  const {loading, lecturers: lecturersList, error} = useSelector((state) => state.user);
 
   const importFromExcel = () => {
     const reader = new FileReader();
@@ -28,7 +32,7 @@ const LecturerPage = () => {
 
       setLecturers(obj);
 
-      //   dispatch(importStudents(students))
+        dispatch(importLecturers(lecturers))
     };
 
     reader.readAsArrayBuffer(file);
@@ -37,6 +41,17 @@ const LecturerPage = () => {
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
+
+  useEffect(() => {
+    if (lecturersList.length > 0){
+      console.log(lecturersList)
+      setSuccessImport("All data has been uploaded successfully!")
+    }
+  }, [lecturersList])
+
+  useEffect(() => {
+    dispatch(listLecturers())
+  }, [dispatch])
 
   return (
     <div className='w-full'>
@@ -57,11 +72,19 @@ const LecturerPage = () => {
         </div>
       </div>
       <section className='w-full overflow-x-auto'>
-        {/* {loading && <p>Loading...</p>}
+        {loading && <p>Loading...</p>}
         {error && (
           <p className='bg-red-500 p-4 rounded text-oranger-500'>{error}</p>
-        )} */}
-        <table className='w-max border border-gray-400'>
+        )}
+        {successImport && (
+          <span className='flex items-center justify-between my-1 bg-green-100 w-full py-2 px-4 rounded border border-green-400 text-green-700'>
+            <p>{successImport}</p>
+            <button onClick={() => setSuccessImport(null)}>
+              <CloseIcon />
+            </button>
+          </span>
+        )}
+        <table className='w-full border border-gray-400'>
           <thead className=''>
             <tr className='bg-gray-200'>
               <th className='border border-gray-400 p-2'>S/NO</th>
@@ -73,9 +96,9 @@ const LecturerPage = () => {
             </tr>
           </thead>
           <tbody>
-            {lecturers.map((lecturer, index) => (
+            {lecturersList.map((lecturer, index) => (
               <tr key={index}>
-                <td className='border border-gray-400 p-2'>{index}</td>
+                <td className='border border-gray-400 p-2'>{index + 1}</td>
                 <td className='border border-gray-400 p-2'>
                   {lecturer.full_name}
                 </td>
@@ -87,7 +110,12 @@ const LecturerPage = () => {
                   {lecturer.contact}
                 </td>
                 <td className='border border-gray-400 p-2'>
-                  <Link to={`/lecturers/1`} className="bg-green-500 text-white rounded px-2 py-1 text-sm">View</Link>
+                  <Link
+                    to={`/lecturers/1`}
+                    className='bg-green-500 text-white rounded px-2 py-1 text-sm'
+                  >
+                    View
+                  </Link>
                 </td>
               </tr>
             ))}

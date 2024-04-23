@@ -11,7 +11,6 @@ from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerial
 from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission, Teaching
 
 
-
 @api_view(['POST'])
 def add_students(request):
     if request.method == 'POST':
@@ -81,11 +80,11 @@ def add_lecturers(request):
                     'user': user.id,
                     'staff_no': userObj['staff_no']
                 }
-                send_password_email(userObj['email'], random_pass)
 
                 lecturer_serializer = LecturerSerializer(data=lecturer_data)
                 if lecturer_serializer.is_valid():
                     lecturer_serializer.save()
+                    send_password_email(userObj['email'], random_pass)
                     user_data = {
                         **serializer.data,
                         **lecturer_serializer.data

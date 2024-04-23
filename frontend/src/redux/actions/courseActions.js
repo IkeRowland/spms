@@ -86,7 +86,6 @@ export const enrollCourses = (courseData) => async(dispatch, getState) => {
     await axios.post(`${BASE_URL}/courses/enroll/`, courseData, config)
     dispatch(enrollCoursesSuccess());
   }catch (err){
-    console.log(err);
     const errMsg = err?.data && err?.data?.length 
       ? err.data[0]?.message : err?.data ? err.data?.message || err.data?.detail
       : err.statusText;

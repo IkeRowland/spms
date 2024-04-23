@@ -72,14 +72,14 @@ export const importLecturers = (lecturersList) => async (dispatch, getState) => 
         "Content-Type": "application/json",
       },
     };
-
-    const { data } = await axios.post(
+    
+    await axios.post(
       `${BASE_URL}/users/add/lecturers/`,
       lecturersList,
       config
     );
 
-    dispatch(addLecturesSuccess(data));
+    dispatch(addLecturesSuccess());
   } catch (err) {
     const errMsg =
       err?.data && err?.data?.length

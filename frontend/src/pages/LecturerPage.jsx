@@ -2,41 +2,57 @@ import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteUser, importLecturers, listLecturers } from "../redux/actions/userActions";
+import {
+  deleteUser,
+  importLecturers,
+  listLecturers,
+} from "../redux/actions/userActions";
 import CloseIcon from "@mui/icons-material/Close";
+import { resetState } from "../redux/slices/userSlices";
 
 const LecturerPage = () => {
   const dispatch = useDispatch();
   const [lecturers, setLecturers] = useState([]);
   const [file, setFile] = useState("");
+  const [fileErr, setFileErr] = useState("");
   const [successImport, setSuccessImport] = useState(null);
 
-  const {loading, lecturers: lecturersList, error, deleted} = useSelector((state) => state.user);
+  const {
+    loading,
+    lecturers: lecturersList,
+    error,
+    deleted,
+    created,
+  } = useSelector((state) => state.user);
 
   const importFromExcel = () => {
-    const reader = new FileReader();
+    if (file === "") {
+      setFileErr("Please choose an excel file to upload!");
+    } else {
+      const reader = new FileReader();
 
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const LecturerData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      const obj = LecturerData.slice(1).map((row) => ({
-        staff_no: row[0],
-        full_name: row[1],
-        email: row[2],
-        contact: row[3],
-        user_type: "lecturer",
-      }));
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const LecturerData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const obj = LecturerData.slice(1).map((row) => ({
+          staff_no: row[0],
+          full_name: row[1],
+          email: row[2],
+          contact: row[3],
+          user_type: "lecturer",
+        }));
 
-      setLecturers(obj);
+        setLecturers(obj);
 
-        dispatch(importLecturers(lecturers))
-    };
+        dispatch(importLecturers(lecturers));
+      };
 
-    reader.readAsArrayBuffer(file);
-  }
+      reader.readAsArrayBuffer(file);
+    }
+  };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -45,24 +61,29 @@ const LecturerPage = () => {
   const handleDeleteUser = (userId) => {
     alert("Are you sure you want to delete the user?");
     dispatch(deleteUser(userId));
-  }
+  };
 
   useEffect(() => {
-    if (lecturersList.length > 0){
-      console.log(lecturersList)
-      setSuccessImport("All data has been uploaded successfully!")
+    if (created) {
+      setSuccessImport("All data has been uploaded successfully!");
     }
-  }, [lecturersList])
+    const timeout = setTimeout(() => {
+      dispatch(resetState());
+      setSuccessImport(null);
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [dispatch, created]);
 
   useEffect(() => {
-    dispatch(listLecturers())
-  }, [dispatch])
+    dispatch(listLecturers());
+  }, [dispatch]);
 
   useEffect(() => {
-    if (deleted){
-      dispatch(listLecturers())
+    if (deleted) {
+      dispatch(listLecturers());
     }
-  }, [dispatch, deleted])
+  }, [dispatch, deleted]);
 
   return (
     <div className='w-full'>
@@ -91,6 +112,14 @@ const LecturerPage = () => {
           <span className='flex items-center justify-between my-1 bg-green-100 w-full py-2 px-4 rounded border border-green-400 text-green-700'>
             <p>{successImport}</p>
             <button onClick={() => setSuccessImport(null)}>
+              <CloseIcon />
+            </button>
+          </span>
+        )}
+        {fileErr && (
+          <span className='flex items-center justify-between my-1 bg-red-100 w-full py-2 px-4 rounded border border-red-400 text-red-700'>
+            <p>{fileErr}</p>
+            <button onClick={() => setFileErr(null)}>
               <CloseIcon />
             </button>
           </span>
@@ -130,7 +159,10 @@ const LecturerPage = () => {
                     >
                       View
                     </Link>
-                    <button className='bg-red-500 text-white rounded px-2 py-1 text-sm' onClick={() => handleDeleteUser(lecturer.user_id)}>
+                    <button
+                      className='bg-red-500 text-white rounded px-2 py-1 text-sm'
+                      onClick={() => handleDeleteUser(lecturer.user_id)}
+                    >
                       Delete
                     </button>
                   </td>

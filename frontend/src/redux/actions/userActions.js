@@ -15,6 +15,7 @@ import {
   actionStart,
   actionFail,
   getLecturesSuccess,
+  deleteUserSuccess,
 } from "../slices/userSlices";
 import axios from "redaxios";
 import { BASE_URL } from "../../URL";
@@ -132,6 +133,42 @@ export const listLecturers = () => async (dispatch, getState) => {
 
     const { data } = await axios.get(`${BASE_URL}/users/lecturers/`, config);
     dispatch(getLecturesSuccess(data));
+  } catch (err) {
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(actionFail(errMsg));
+    }
+  }
+};
+
+// Delete user
+export const deleteUser = (userId) => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+     await axios.delete(`${BASE_URL}/users/${userId}/delete/`, config);
+    dispatch(deleteUserSuccess());
   } catch (err) {
     const errMsg =
       err?.data && err?.data?.length

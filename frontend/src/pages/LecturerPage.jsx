@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { importLecturers, listLecturers } from "../redux/actions/userActions";
+import { deleteUser, importLecturers, listLecturers } from "../redux/actions/userActions";
 import CloseIcon from "@mui/icons-material/Close";
 
 const LecturerPage = () => {
@@ -11,7 +11,7 @@ const LecturerPage = () => {
   const [file, setFile] = useState("");
   const [successImport, setSuccessImport] = useState(null);
 
-  const {loading, lecturers: lecturersList, error} = useSelector((state) => state.user);
+  const {loading, lecturers: lecturersList, error, deleted} = useSelector((state) => state.user);
 
   const importFromExcel = () => {
     const reader = new FileReader();
@@ -42,6 +42,11 @@ const LecturerPage = () => {
     setFile(e.target.files[0]);
   };
 
+  const handleDeleteUser = (userId) => {
+    alert("Are you sure you want to delete the user?");
+    dispatch(deleteUser(userId));
+  }
+
   useEffect(() => {
     if (lecturersList.length > 0){
       console.log(lecturersList)
@@ -52,6 +57,12 @@ const LecturerPage = () => {
   useEffect(() => {
     dispatch(listLecturers())
   }, [dispatch])
+
+  useEffect(() => {
+    if (deleted){
+      dispatch(listLecturers())
+    }
+  }, [dispatch, deleted])
 
   return (
     <div className='w-full'>
@@ -96,29 +107,36 @@ const LecturerPage = () => {
             </tr>
           </thead>
           <tbody>
-            {lecturersList.map((lecturer, index) => (
-              <tr key={index}>
-                <td className='border border-gray-400 p-2'>{index + 1}</td>
-                <td className='border border-gray-400 p-2'>
-                  {lecturer.full_name}
-                </td>
-                <td className='border border-gray-400 p-2'>{lecturer.email}</td>
-                <td className='border border-gray-400 p-2'>
-                  {lecturer.staff_no}
-                </td>
-                <td className='border border-gray-400 p-2'>
-                  {lecturer.contact}
-                </td>
-                <td className='border border-gray-400 p-2'>
-                  <Link
-                    to={`/lecturers/1`}
-                    className='bg-green-500 text-white rounded px-2 py-1 text-sm'
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {lecturersList.map((lecturer, index) => {
+              return (
+                <tr key={index}>
+                  <td className='border border-gray-400 p-2'>{index + 1}</td>
+                  <td className='border border-gray-400 p-2'>
+                    {lecturer.full_name}
+                  </td>
+                  <td className='border border-gray-400 p-2'>
+                    {lecturer.email}
+                  </td>
+                  <td className='border border-gray-400 p-2'>
+                    {lecturer.staff_no}
+                  </td>
+                  <td className='border border-gray-400 p-2'>
+                    {lecturer.contact}
+                  </td>
+                  <td className='border border-gray-400 flex gap-3 p-2'>
+                    <Link
+                      to={`/lecturers/1`}
+                      className='bg-green-500 text-white rounded px-2 py-1 text-sm'
+                    >
+                      View
+                    </Link>
+                    <button className='bg-red-500 text-white rounded px-2 py-1 text-sm' onClick={() => handleDeleteUser(lecturer.user_id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>

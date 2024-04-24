@@ -1,8 +1,15 @@
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { getCourses } from "../redux/actions/courseActions";
 
 const AdminCourseList = () => {
+  const dispatch = useDispatch();
   const { courses } = useSelector((state) => state.course);
+
+  useEffect(() => {
+    dispatch(getCourses());
+  }, [dispatch])
   return (
     <section>
       <div className="flex justify-between items-center my-2">

@@ -54,7 +54,7 @@ def add_students(request):
                 else:
                     errors.append(serializer.errors)
         if len(errors) > 0:
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Some data were not valid!"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(usersList, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,6 +69,8 @@ def add_lecturers(request):
         data = request.data
         usersList = []
         errors = []
+        if len(data) == 0:
+            return Response({"message": "Empty file!"}, status=status.HTTP_400_BAD_REQUEST)
         for userObj in data:
             random_pass = generate_random_password()
             userObj['username'] = userObj.get('staff_no')
@@ -95,7 +97,7 @@ def add_lecturers(request):
             else:
                 errors.append(serializer.errors)
         if len(errors) > 0:
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Some data were not valid!"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(usersList, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 

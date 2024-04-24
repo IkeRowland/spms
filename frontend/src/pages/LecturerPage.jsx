@@ -7,12 +7,11 @@ import {
   importLecturers,
   listLecturers,
 } from "../redux/actions/userActions";
-import CloseIcon from "@mui/icons-material/Close";
 import { resetState } from "../redux/slices/userSlices";
+import Message from "../components/Message";
 
 const LecturerPage = () => {
   const dispatch = useDispatch();
-  const [lecturers, setLecturers] = useState([]);
   const [file, setFile] = useState("");
   const [fileErr, setFileErr] = useState("");
   const [successImport, setSuccessImport] = useState(null);
@@ -45,9 +44,9 @@ const LecturerPage = () => {
           user_type: "lecturer",
         }));
 
-        setLecturers(obj);
+        // setLecturers(obj);
 
-        dispatch(importLecturers(lecturers));
+        dispatch(importLecturers(obj));
       };
 
       reader.readAsArrayBuffer(file);
@@ -57,6 +56,8 @@ const LecturerPage = () => {
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
+
+  console.log(error);
 
   const handleDeleteUser = (userId) => {
     alert("Are you sure you want to delete the user?");
@@ -106,23 +107,13 @@ const LecturerPage = () => {
       <section className='w-full overflow-x-auto'>
         {loading && <p>Loading...</p>}
         {error && (
-          <p className='bg-red-500 p-4 rounded text-oranger-500'>{error}</p>
+          <Message onClose={() => dispatch(resetState())}>{error}</Message>
         )}
         {successImport && (
-          <span className='flex items-center justify-between my-1 bg-green-100 w-full py-2 px-4 rounded border border-green-400 text-green-700'>
-            <p>{successImport}</p>
-            <button onClick={() => setSuccessImport(null)}>
-              <CloseIcon />
-            </button>
-          </span>
+         <Message variant="success" onClose={() => setSuccessImport(null)}>{successImport}</Message>
         )}
         {fileErr && (
-          <span className='flex items-center justify-between my-1 bg-red-100 w-full py-2 px-4 rounded border border-red-400 text-red-700'>
-            <p>{fileErr}</p>
-            <button onClick={() => setFileErr(null)}>
-              <CloseIcon />
-            </button>
-          </span>
+          <Message onClose={() => setFileErr(null)}>{fileErr}</Message>
         )}
         <table className='w-full border border-gray-400'>
           <thead className=''>

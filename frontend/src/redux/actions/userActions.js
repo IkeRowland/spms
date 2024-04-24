@@ -82,6 +82,7 @@ export const importLecturers = (lecturersList) => async (dispatch, getState) => 
 
     dispatch(addLecturesSuccess());
   } catch (err) {
+    console.log(err)
     const errMsg =
       err?.data && err?.data?.length
         ? err.data[0]?.message

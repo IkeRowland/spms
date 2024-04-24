@@ -17,6 +17,7 @@ import {
   getLecturesSuccess,
   deleteUserSuccess,
   getLecturerInfoSuccess,
+  updateUserSuccess,
 } from "../slices/userSlices";
 import axios from "redaxios";
 import { BASE_URL } from "../../URL";
@@ -147,6 +148,7 @@ export const listLecturers = () => async (dispatch, getState) => {
       errMsg === "Given token not valid for any token type"
     ) {
       dispatch(logout());
+      dispatch(actionFail("Your session has expired"));
     } else {
       dispatch(actionFail(errMsg));
     }
@@ -183,6 +185,44 @@ export const deleteUser = (userId) => async (dispatch, getState) => {
       errMsg === "Given token not valid for any token type"
     ) {
       dispatch(logout());
+      dispatch(actionFail("Your session has expired"));
+    } else {
+      dispatch(actionFail(errMsg));
+    }
+  }
+};
+
+// Update user
+export const updateUser = (userData) => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+     const {data} = await axios.patch(`${BASE_URL}/users/update/`, userData, config);
+    dispatch(updateUserSuccess(data));
+  } catch (err) {
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+      dispatch(actionFail("Your session has expired"));
     } else {
       dispatch(actionFail(errMsg));
     }
@@ -190,7 +230,6 @@ export const deleteUser = (userId) => async (dispatch, getState) => {
 };
 
 // Admin get lecturer details
-// Import lecturer data
 export const getLecturerDetails = (lecturerId) => async (dispatch, getState) => {
   try {
     dispatch(actionStart());
@@ -224,6 +263,7 @@ export const getLecturerDetails = (lecturerId) => async (dispatch, getState) => 
       errMsg === "Given token not valid for any token type"
     ) {
       dispatch(logout());
+      dispatch(actionFail("Your session has expired"));
     } else {
       dispatch(actionFail(errMsg));
     }

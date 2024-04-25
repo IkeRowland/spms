@@ -292,8 +292,11 @@ def get_courses(request):
 @api_view(['DELETE'])
 def delete_course(request, course_id):
     if request.method == 'DELETE':
+        print(course_id)
+        course_code = course_id.replace('-', ' ')
+        print(course_code)
         try:
-            course = Course.objects.get(id=course_id)
+            course = Course.objects.get(course_code=course_code)
             course.delete()
             return Response({"message": "Course deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
         except Course.DoesNotExist:

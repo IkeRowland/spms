@@ -16,7 +16,7 @@ urlpatterns = [
     path('courses/create/', create_course),
     path('courses/', get_courses),
     path('courses/lecturers/', get_courses_lecturers),
-    path('courses/<int:course_id>/delete/', delete_course),
+    path('courses/<str:course_id>/delete/', delete_course),
     path('courses/students/', get_course_students),
     path('courses/enroll/', enroll_course),
     path('courses/enrolled/', get_student_courses),

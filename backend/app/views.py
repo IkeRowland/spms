@@ -11,7 +11,6 @@ from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerial
 from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission, Teaching
 
 
-
 @api_view(['POST'])
 def add_students(request):
     if request.method == 'POST':
@@ -55,7 +54,7 @@ def add_students(request):
                 else:
                     errors.append(serializer.errors)
         if len(errors) > 0:
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Some data were not valid!"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(usersList, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,6 +69,8 @@ def add_lecturers(request):
         data = request.data
         usersList = []
         errors = []
+        if len(data) == 0:
+            return Response({"message": "Empty file!"}, status=status.HTTP_400_BAD_REQUEST)
         for userObj in data:
             random_pass = generate_random_password()
             userObj['username'] = userObj.get('staff_no')
@@ -81,11 +82,11 @@ def add_lecturers(request):
                     'user': user.id,
                     'staff_no': userObj['staff_no']
                 }
-                send_password_email(userObj['email'], random_pass)
 
                 lecturer_serializer = LecturerSerializer(data=lecturer_data)
                 if lecturer_serializer.is_valid():
                     lecturer_serializer.save()
+                    send_password_email(userObj['email'], random_pass)
                     user_data = {
                         **serializer.data,
                         **lecturer_serializer.data
@@ -96,7 +97,7 @@ def add_lecturers(request):
             else:
                 errors.append(serializer.errors)
         if len(errors) > 0:
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Some data were not valid!"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(usersList, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -574,4 +575,30 @@ def allocate_lecturer_course(request, lecturer_id):
 
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
-    
+
+# Admin get lecturer courses
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_lecturer_courses(request, lecturer_id):
+    if request.method == 'GET':
+        teachings = Teaching.objects.filter(lecturer__id=lecturer_id)
+        courses = [{"teaching_id": teaching.id, "course_code": teaching.course.course_code, "course_name": teaching.course.course_name, "semester": teaching.semester.id} for teaching in teachings]
+        return Response(courses, status=status.HTTP_200_OK)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)
+
+# Admin get lecturer details
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_lecturer_details(request, lecturer_id):
+    if request.method == 'GET':
+        try:
+            lecturer = Lecturer.objects.get(id=lecturer_id)
+            info = {
+                "full_name": lecturer.user.full_name,
+                "email": lecturer.user.email,
+                "contact": lecturer.user.contact
+            }
+            return Response(info, status=status.HTTP_200_OK)
+        except Lecturer.DoesNotExist:
+            return Response({"message": "Lecturer not found!"}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)

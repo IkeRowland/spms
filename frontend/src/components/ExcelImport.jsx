@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import {useDispatch, useSelector} from "react-redux"
-import { importStudents, listStudents } from "../redux/actions/userActions";
+import { deleteUser, importStudents, listStudents } from "../redux/actions/userActions";
+import { resetState } from "../redux/slices/userSlices";
+import CloseIcon from "@mui/icons-material/Close";
 
 const ExcelImport = () => {
   const dispatch = useDispatch();
   const [students, setStudents] = useState([]);
+  const [fileErr, setFileErr] = useState(null);
 
-  const {loading, error, students: studentsList} = useSelector((state) => state.user) 
+  const {loading, error, students: studentsList, deleted} = useSelector((state) => state.user) 
+
+  console.log(students);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -33,51 +38,98 @@ const ExcelImport = () => {
         user_type: "student"
       }));
 
-      dispatch(importStudents(students))
-
       setStudents(students);
     };
 
     reader.readAsArrayBuffer(file);
   };
 
+  const uploadExcelFile = () => {
+    if (students.length === 0){
+      setFileErr("Please choose an excel file to upload!")
+    }else{
+      dispatch(importStudents);
+    }
+  }
+
+    const handleDeleteUser = (userId) => {
+      alert("Are you sure you want to delete the user?");
+      dispatch(deleteUser(userId));
+    };
+
   useEffect(() => {
     dispatch(listStudents());
   }, [dispatch])
 
-  useEffect(() => {
-    if (studentsList){
-      setStudents(studentsList)
-    }
-  }, [studentsList])
+    useEffect(() => {
+      if (deleted) {
+        dispatch(listStudents());
+      }
+    }, [dispatch, deleted]);
+
+    useEffect(() => {
+      if (deleted || error){
+        const timeout = setTimeout(() => {
+          dispatch(resetState());
+        }, 3000);
+
+        return () => clearTimeout(timeout);
+      }
+    }, [dispatch, deleted, error])
 
   return (
     <div className='w-full'>
-      <div className='flex gap-3 justify-end items-center mb-4'>
-        <h6 className='my-auto'>Import Student from Excel:</h6>
-        <input type='file' onChange={handleFileChange} className='' />
+      <div className='flex justify-between items-center mb-4'>
+        <h2 className='text-2xl font-semibold'>Students</h2>
+        <div className='flex gap-3'>
+          <input
+            type='file'
+            onChange={handleFileChange}
+            className='border focus:outline-gray-900 px-4 py-1 rounded'
+          />
+          <button
+            className='bg-gray-900 text-white px-4 py-2 rounded'
+            onClick={uploadExcelFile}
+          >
+            Upload data
+          </button>
+        </div>
       </div>
       <section className='w-full overflow-x-auto'>
         {loading && <p>Loading...</p>}
         {error && (
           <p className='bg-red-500 p-4 rounded text-oranger-500'>{error}</p>
         )}
+        {deleted && (
+          <span className='flex items-center justify-between my-1 bg-green-100 w-full py-2 px-4 rounded border border-green-400 text-green-700'>
+            <p>User has been deleted successfully!</p>
+          </span>
+        )}
+        {fileErr && (
+          <span className='flex items-center justify-between my-1 bg-red-100 w-full py-2 px-4 rounded border border-red-400 text-red-700'>
+            <p>{fileErr}</p>
+            <button onClick={() => setFileErr(null)}>
+              <CloseIcon />
+            </button>
+          </span>
+        )}
         <table className='w-max border border-gray-400'>
           <thead className=''>
             <tr className='bg-gray-200'>
+              <th className='border border-gray-400 p-2'>#</th>
               <th className='border border-gray-400 p-2'>REG NO</th>
               <th className='border border-gray-400 p-2'>FULL NAME</th>
               <th className='border border-gray-400 p-2'>INDEX NO</th>
               <th className='border border-gray-400 p-2'>EMAIL</th>
               <th className='border border-gray-400 p-2'>CONTACT</th>
               <th className='border border-gray-400 p-2'>YEAR JOINED</th>
-              <th className='border border-gray-400 p-2'>FACULTY</th>
-              <th className='border border-gray-400 p-2'>COURSE</th>
+              <th className='border border-gray-400 p-2'>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            {students.map((student, index) => (
+            {studentsList.map((student, index) => (
               <tr key={index}>
+                <td className='border border-gray-400 p-2'>{index + 1}</td>
                 <td className='border border-gray-400 p-2'>{student.reg_no}</td>
                 <td className='border border-gray-400 p-2'>
                   {student.full_name}
@@ -93,9 +145,13 @@ const ExcelImport = () => {
                   {student.year_joined}
                 </td>
                 <td className='border border-gray-400 p-2'>
-                  {student.faculty}
+                  <button
+                    className='bg-red-500 text-white rounded px-2 py-1 text-sm'
+                    onClick={() => handleDeleteUser(student.user)}
+                  >
+                    Delete
+                  </button>
                 </td>
-                <td className='border border-gray-400 p-2'>{student.course}</td>
               </tr>
             ))}
           </tbody>

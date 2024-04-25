@@ -100,61 +100,16 @@ const handleEnrollCourseSubmit = (e) => {
       >
         <div className='col-span-3 pr-2'>
           <div className='bg-white p-2'>
-            {userInfo?.user?.user_type === "student" ? (
-              <>
-                {loadingUser && <p>Loading....</p>}
-                {errorUser && (
-                  <p className='bg-red-500 p-4 rounded text-oranger-500'>
-                    {errorUser}
-                  </p>
-                )}
-                <h4 className='text-center font-md-bold'>2024/2</h4>
-                <table className='w-full border'>
-                  <thead className=''>
-                    <tr className='text-left'>
-                      <th className='border border-gray-300 p-2'>ID</th>
-                      <th className='border border-gray-300 p-2'>
-                        Course Code
-                      </th>
-                      <th className='border border-gray=300 p-2'>
-                        Course Name
-                      </th>
-                      <th className='border border-gray-300 p-2'>Exam Type</th>
-                    </tr>
-                  </thead>
-                  <tbody className=''>
-                    {myCourses.map((course, index) => {
-                      const {
-                        enrollment_id,
-                        course_code,
-                        course_name,
-                        exam_type,
-                      } = course;
-                      return (
-                        <tr key={enrollment_id}>
-                          <td className='border border-gray-300 p-2'>
-                            {index + 1}
-                          </td>
-                          <td className='border border-gray-300 p-2'>
-                            {course_code}
-                          </td>
-                          <td className='border border-gray-300 p-2'>
-                            {course_name}
-                          </td>
-                          <td className='border border-gray-300 p-2 capitalize'>
-                            {exam_type}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </>
-            ) : (
-              userInfo?.user?.user_type === "lecturer" && (
+            {userInfo?.user?.user_type !== "admin" && (
                 <>
-                  <h2 className='font-semibold mt-5 pb-3'>All Courses</h2>
-                  <table className='w-full border mb-4'>
+                  {loadingUser && <p>Loading....</p>}
+                  {errorUser && (
+                    <p className='bg-red-500 p-4 rounded text-oranger-500'>
+                      {errorUser}
+                    </p>
+                  )}
+                  <h4 className='text-center font-md-bold'>2024/2</h4>
+                  <table className='w-full border'>
                     <thead className=''>
                       <tr className='text-left'>
                         <th className='border border-gray-300 p-2'>ID</th>
@@ -164,20 +119,32 @@ const handleEnrollCourseSubmit = (e) => {
                         <th className='border border-gray=300 p-2'>
                           Course Name
                         </th>
+                        <th className='border border-gray-300 p-2'>
+                          Exam Type
+                        </th>
                       </tr>
                     </thead>
                     <tbody className=''>
-                      {courses.map((course, index) => {
+                      {myCourses.map((course, index) => {
+                        const {
+                          enrollment_id,
+                          course_code,
+                          course_name,
+                          exam_type,
+                        } = course;
                         return (
-                          <tr key={course.id}>
+                          <tr key={enrollment_id}>
                             <td className='border border-gray-300 p-2'>
                               {index + 1}
                             </td>
                             <td className='border border-gray-300 p-2'>
-                              {course.course_code}
+                              {course_code}
                             </td>
                             <td className='border border-gray-300 p-2'>
-                              {course.course_name}
+                              {course_name}
+                            </td>
+                            <td className='border border-gray-300 p-2 capitalize'>
+                              {exam_type}
                             </td>
                           </tr>
                         );
@@ -185,8 +152,7 @@ const handleEnrollCourseSubmit = (e) => {
                     </tbody>
                   </table>
                 </>
-              )
-            )}
+              )}
           </div>
         </div>
         <form className='col-span-2 bg-white p-4 h-max flex flex-col items-center justify-center'>
@@ -308,7 +274,10 @@ const handleEnrollCourseSubmit = (e) => {
                 Create Course
               </button>
               <div className='my-1'>
-                <Link to='/courses/list' className='bg-green-500 text-white rounded px-4 py-2'>
+                <Link
+                  to='/courses/list'
+                  className='bg-green-500 text-white rounded px-4 py-2'
+                >
                   View Courses
                 </Link>
               </div>

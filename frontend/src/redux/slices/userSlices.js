@@ -7,8 +7,13 @@ const initialState = {
   error: null,
   userInfo: userInfoFromLocalStorage,
   students: [],
+  lecturers: [],
   myCourses: [],
   enrolled: false,
+  deleted: false,
+  created: false,
+  updated: false,
+  lecturerInfo: {},
 };
 
 export const userSlice = createSlice({
@@ -41,6 +46,22 @@ export const userSlice = createSlice({
     addStudentsFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    addLecturesStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    addLecturesSuccess: (state) => {
+      state.loading = false;
+      state.created = true;
+    },
+    addLecturesFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    getLecturesSuccess: (state, action) => {
+      state.loading = false;
+      state.lecturers = action.payload;
     },
     getStudentsStart: (state) => {
       state.loading = true;
@@ -78,10 +99,38 @@ export const userSlice = createSlice({
     enrollCoursesFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
-    }
+    },
+    deleteUserSuccess: (state) => {
+      state.deleted = true;
+    },
+    getLecturerInfoSuccess: (state, action) => {
+      state.loading = false;
+      state.lecturerInfo = action.payload;
+    },
+    actionStart: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.deleted = false;
+    },
+    actionFail: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    resetState: (state) => {
+      state.deleted =  false;
+      state.error = null;
+      state.created = false;
+      state.updated = false;
+    },
+    updateUserSuccess: (state, action) => {
+      state.loading = false;
+      const contact = action.payload.contact;
+      state.userInfo = {...state.userInfo, contact};
+      state.updated = true;
+    },
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail, addLecturesStart, addLecturesSuccess, addLecturesFail, getLecturesSuccess, actionStart, actionFail, deleteUserSuccess, resetState, getLecturerInfoSuccess, updateUserSuccess } = userSlice.actions;
 
 export default userSlice.reducer;

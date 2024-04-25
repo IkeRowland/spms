@@ -73,7 +73,7 @@ export const getCourses = () => async (dispatch, getState) => {
 };
 
 // Get user Courses
-export const getMyCourses = () => async (dispatch, getState) => {
+export const getMyCourses = (type="student") => async (dispatch, getState) => {
   try {
     dispatch(getMyCoursesStart());
 
@@ -87,8 +87,21 @@ export const getMyCourses = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(`${BASE_URL}/courses/enrolled/`, config);
-    dispatch(getMyCoursesSuccess(data));
+    let courses;
+
+   if (type === "student"){
+     const { data } = await axios.get(`${BASE_URL}/courses/enrolled/`, config);
+     // users/lecturer/courses/
+     courses = data;
+   }else if (type === "lecturer"){
+    const { data } = await axios.get(
+      `${BASE_URL}/users/lecturer/courses/`,
+      config
+    );
+    // users/lecturer/courses/
+    courses = data;
+   }
+    dispatch(getMyCoursesSuccess(courses));
   } catch (err) {
     const errMsg = err?.data
       ? err.data?.message || err.data?.detail
@@ -137,10 +150,11 @@ export const enrollCourses = (courseData) => async (dispatch, getState) => {
 };
 
 export const deleteCourse = (course_id) => async (dispatch) => {
+  const course_code = course_id.replace(' ', '-');
   try {
     dispatch(deleteCourseStart());
 
-    await axios.delete(`${BASE_URL}/courses/${course_id}/delete/`);
+    await axios.delete(`${BASE_URL}/courses/${course_code}/delete/`);
     dispatch(deleteCourseSuccess());
   } catch (err) {
     const errMsg = err?.data ? err.data.message : err.statusText;

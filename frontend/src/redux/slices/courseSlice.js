@@ -7,6 +7,7 @@ const initialState = {
   courses: [],
   userCourses: [],
   assigned: false,
+  courseDelete: false,
 };
 
 export const courseSlice = createSlice({
@@ -42,9 +43,11 @@ export const courseSlice = createSlice({
     deleteCourseStart: (state) => {
       state.loading = true;
       state.error = false;
+      state.courseDelete = false;
     },
     deleteCourseSuccess: (state) => {
       state.loading = false;
+      state.courseDelete = true;
     },
     deleteCourseFail: (state, action) => {
       state.loading = false;
@@ -72,6 +75,7 @@ export const courseSlice = createSlice({
       state.assigned = false;
       state.success = false;
       state.error = null;
+      state.courseDelete = false;
     },
   },
 });

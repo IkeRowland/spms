@@ -9,10 +9,9 @@ const ExcelImport = () => {
   const dispatch = useDispatch();
   const [students, setStudents] = useState([]);
   const [fileErr, setFileErr] = useState(null);
+  const [showImportBtn, setShowImportBtn] = useState(false);
 
-  const {loading, error, students: studentsList, deleted} = useSelector((state) => state.user) 
-
-  console.log(students);
+  const {loading, error, students: studentsList, deleted} = useSelector((state) => state.user);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -81,19 +80,35 @@ const ExcelImport = () => {
     <div className='w-full'>
       <div className='flex justify-between items-center mb-4'>
         <h2 className='text-2xl font-semibold'>Students</h2>
-        <div className='flex gap-3'>
-          <input
-            type='file'
-            onChange={handleFileChange}
-            className='border focus:outline-gray-900 px-4 py-1 rounded'
-          />
-          <button
-            className='bg-gray-900 text-white px-4 py-2 rounded'
-            onClick={uploadExcelFile}
-          >
-            Upload data
-          </button>
-        </div>
+        {!showImportBtn ? (
+          <span className='flex gap-5 items-center border text-sm text-gray-600 p-2'>
+            <span>
+              <h6 className="text-xl font-semibold text-gray-900">Import Students</h6>
+              <p>
+                To Import students data, please click on Import, select an excel
+                file and upload data.
+              </p>
+            </span>
+            <button className='bg-gray-900 text-white px-4 py-2 rounded' onClick={() => setShowImportBtn(true)}>
+              Import
+            </button>
+          </span>
+        ) : (
+          <div className='flex gap-3 border p-2 relative'>
+            <input
+              type='file'
+              onChange={handleFileChange}
+              className='border focus:outline-gray-900 px-4 py-1 rounded'
+            />
+            <button
+              className='bg-gray-900 text-white px-4 py-2 rounded'
+              onClick={uploadExcelFile}
+            >
+              Upload data
+            </button>
+            <button className="bg-gray-200 h-6 w-6 text-gray-900 rounded-full flex justify-center items-center absolute top-0 close-import-btn" onClick={() => setShowImportBtn(false)}>x</button>
+          </div>
+        )}
       </div>
       <section className='w-full overflow-x-auto'>
         {loading && <p>Loading...</p>}
@@ -149,7 +164,7 @@ const ExcelImport = () => {
                     className='bg-red-500 text-white rounded px-2 py-1 text-sm'
                     onClick={() => handleDeleteUser(student.user)}
                   >
-                    Delete
+                    Remove
                   </button>
                 </td>
               </tr>

@@ -33,8 +33,6 @@ def add_students(request):
                         'reg_no': userObj.get('reg_no'),
                         'index_no': userObj.get('index_no'),
                         'year_joined': userObj.get('year_joined'),
-                        'faculty': userObj.get('faculty'),
-                        'course': userObj.get('course'),
                         'user': user.id
                     }
 

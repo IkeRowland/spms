@@ -65,8 +65,6 @@ class Student(models.Model):
     reg_no = models.CharField(max_length=20, unique=True)
     index_no = models.CharField(max_length=20)
     year_joined = models.IntegerField()
-    faculty = models.CharField(max_length=200)
-    course = models.CharField(max_length=200)
 
     def __str__(self):
         return self.reg_no

@@ -20,7 +20,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['reg_no', 'index_no', 'year_joined', 'faculty', 'course', 'user']
+        fields = ['reg_no', 'index_no', 'year_joined', 'user']
 
 
 

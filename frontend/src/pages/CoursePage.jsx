@@ -1,266 +1,288 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createCourse, enrollCourses, getCourses, getMyCourses } from "../redux/actions/courseActions";
+import {
+  createCourse,
+  enrollCourses,
+  getCourses,
+  getMyCourses,
+} from "../redux/actions/courseActions";
 import { Link } from "react-router-dom";
+import { validateObject } from "../helpers";
+import Message from "../components/Message";
+import { resetCourseState } from "../redux/slices/courseSlice";
 
 const CoursePage = () => {
   const dispatch = useDispatch();
 
-  const { loading, error, courses, success } = useSelector(
+  const { loading, error, course_created } = useSelector(
     (state) => state.course
   );
-  const {semesters} = useSelector((state) => state.semester);
-  const {userInfo, myCourses, loading: loadingUser, error: errorUser, enrolled} = useSelector((state) => state.user);
+  const { semesters } = useSelector((state) => state.semester);
+  const {
+    userInfo,
+    myCourses,
+    loading: loadingUser,
+    error: errorUser,
+    enrolled,
+  } = useSelector((state) => state.user);
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
-  const [semester, setSemester] = useState("")
+  const [semester, setSemester] = useState("");
+  const [sem, setSem] = useState("");
+  const [year, setYear] = useState("");
+  const [createCourseFormErr, setCreateCourseFormErr] = useState(null);
 
- const [enrollCourseData, setEnrollCourseData] = useState(
-   Array.from({ length: 5 }, () => ({
-     course_code: "",
-     semester_id: semester,
-     exam_type: "first attempt",
-   }))
- );
+  const [enrollCourseData, setEnrollCourseData] = useState(
+    Array.from({ length: 5 }, () => ({
+      course_code: "",
+      semester_id: semester,
+      exam_type: "first attempt",
+    }))
+  );
 
- 
-const handleEnrollCourseSubmit = (e) => {
-  e.preventDefault()
-  const updatedEnrollCourseData = enrollCourseData.map((course) => ({
-    ...course,
-    semester_id: semester,
-  })).filter((course) => course.course_code !== '');
-  dispatch(enrollCourses(updatedEnrollCourseData))
-};
+  const handleEnrollCourseSubmit = (e) => {
+    e.preventDefault();
+    const updatedEnrollCourseData = enrollCourseData
+      .map((course) => ({
+        ...course,
+        semester_id: semester,
+      }))
+      .filter((course) => course.course_code !== "");
+    dispatch(enrollCourses(updatedEnrollCourseData));
+  };
 
- const handleCourseEnrollInputChange = (index, key, value) => {
-   const newData = enrollCourseData.map((item, i) => {
-     if (i === index) {
-       return {
-         ...item,
-         [key]: value,
-       };
-     }
-     return item;
-   });
-   setEnrollCourseData(newData);
- };
-
+  const handleCourseEnrollInputChange = (index, key, value) => {
+    const newData = enrollCourseData.map((item, i) => {
+      if (i === index) {
+        return {
+          ...item,
+          [key]: value,
+        };
+      }
+      return item;
+    });
+    setEnrollCourseData(newData);
+  };
 
   const handleCreateCourse = (e) => {
     e.preventDefault();
+    const emptyKey = validateObject({courseCode, courseName, year, sem})
+    if (emptyKey){
+      setCreateCourseFormErr(`${emptyKey} is required!`);
+      return;
+    }
     dispatch(
-      createCourse({ course_code: courseCode, course_name: courseName })
+      createCourse({
+        course_code: courseCode,
+        course_name: courseName,
+        level: year,
+        semester_number: sem,
+      })
     );
   };
 
   useEffect(() => {
-    if (courses || error) {
+    if (course_created || error) {
       setCourseCode("");
       setCourseName("");
+      setSem("");
+      setYear("");
     }
-  }, [courses, error]);
+  }, [course_created, error]);
 
   useEffect(() => {
     dispatch(getCourses());
-  }, [dispatch, success]);
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(getMyCourses())
-  }, [dispatch])
+    dispatch(getMyCourses());
+  }, [dispatch]);
 
   useEffect(() => {
-    if (errorUser){
+    if (errorUser) {
       setEnrollCourseData(
         Array.from({ length: 5 }, () => ({
           course_code: "",
-          semester_id: '',
+          semester_id: "",
           exam_type: "first attempt",
         }))
       );
     }
-  }, [errorUser])
-
+  }, [errorUser]);
 
   useEffect(() => {
-    if (enrolled){
+    if (enrolled) {
       dispatch(getMyCourses());
     }
-  }, [dispatch, enrolled])
+  }, [dispatch, enrolled]);
 
   return (
-    <div className='bg-gray-100 p-4'>
-      <h2 className='text-xl font-bold mb-3'>Courses</h2>
-      <section
-        className={`${
-          userInfo?.user?.user_type === "admin"
-            ? "grid-cols-1"
-            : "grid md:grid-cols-5"
-        } `}
-      >
+    <section
+      className={`bg-gray-300 p-4 ${
+        userInfo?.user?.user_type === "admin"
+          ? "w-max grid-cols-1"
+          : "w-full grid md:grid-cols-5"
+      } `}
+    >
+      {userInfo?.user?.user_type !== "admin" && (
         <div className='col-span-3 pr-2'>
           <div className='bg-white p-2'>
-            {userInfo?.user?.user_type !== "admin" && (
-                <>
-                  {loadingUser && <p>Loading....</p>}
-                  {errorUser && (
-                    <p className='bg-red-500 p-4 rounded text-oranger-500'>
-                      {errorUser}
-                    </p>
-                  )}
-                  <h4 className='text-center font-md-bold'>2024/2</h4>
-                  <table className='w-full border'>
-                    <thead className=''>
-                      <tr className='text-left'>
-                        <th className='border border-gray-300 p-2'>ID</th>
-                        <th className='border border-gray-300 p-2'>
-                          Course Code
-                        </th>
-                        <th className='border border-gray=300 p-2'>
-                          Course Name
-                        </th>
-                        <th className='border border-gray-300 p-2'>
-                          Exam Type
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className=''>
-                      {myCourses.map((course, index) => {
-                        const {
-                          enrollment_id,
-                          course_code,
-                          course_name,
-                          exam_type,
-                        } = course;
-                        return (
-                          <tr key={enrollment_id}>
-                            <td className='border border-gray-300 p-2'>
-                              {index + 1}
-                            </td>
-                            <td className='border border-gray-300 p-2'>
-                              {course_code}
-                            </td>
-                            <td className='border border-gray-300 p-2'>
-                              {course_name}
-                            </td>
-                            <td className='border border-gray-300 p-2 capitalize'>
-                              {exam_type}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </>
-              )}
+            {loadingUser && <p>Loading....</p>}
+            {errorUser && (
+              <p className='bg-red-500 p-4 rounded text-oranger-500'>
+                {errorUser}
+              </p>
+            )}
+            <h4 className='text-center font-md-bold'>2024/2</h4>
+            <table className='w-full border'>
+              <thead className=''>
+                <tr className='text-left'>
+                  <th className='border border-gray-300 p-2'>ID</th>
+                  <th className='border border-gray-300 p-2'>Course Code</th>
+                  <th className='border border-gray=300 p-2'>Course Name</th>
+                  <th className='border border-gray-300 p-2'>Exam Type</th>
+                </tr>
+              </thead>
+              <tbody className=''>
+                {myCourses.map((course, index) => {
+                  const { enrollment_id, course_code, course_name, exam_type } =
+                    course;
+                  return (
+                    <tr key={enrollment_id}>
+                      <td className='border border-gray-300 p-2'>
+                        {index + 1}
+                      </td>
+                      <td className='border border-gray-300 p-2'>
+                        {course_code}
+                      </td>
+                      <td className='border border-gray-300 p-2'>
+                        {course_name}
+                      </td>
+                      <td className='border border-gray-300 p-2 capitalize'>
+                        {exam_type}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
+      )}
+      {userInfo?.user?.user_type === "student" && (
         <form className='col-span-2 bg-white p-4 h-max flex flex-col items-center justify-center'>
-          {userInfo?.user?.user_type === "student" && (
-            <>
-              <h2 className='text-xl font-bold p-2'> Register Course</h2>
-              <div className='w-full flex items-center justify-between'>
-                <h6>Select Semester</h6>
-                <select
-                  className='border border-gray-300 p-2 outline-none my-2'
-                  onChange={(e) => setSemester(e.target.value)}
-                >
-                  <option>--Select Semester--</option>
-                  {semesters.map((semester) => {
-                    return (
-                      <option key={semester.id} value={semester.id}>
-                        {semester.id}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              <table className='w-full'>
-                <thead>
-                  <tr>
-                    <th className='border border-gray-300 p-2'>Course Code</th>
-                    <th className='border border-gray-300 p-2'>Exam Type</th>
+          <h2 className='text-xl font-bold p-2'> Register Course</h2>
+          <div className='w-full flex items-center justify-between'>
+            <h6>Select Semester</h6>
+            <select
+              className='border border-gray-300 p-2 outline-none my-2'
+              onChange={(e) => setSemester(e.target.value)}
+            >
+              <option>--Select Semester--</option>
+              {semesters.map((semester) => {
+                return (
+                  <option key={semester.id} value={semester.id}>
+                    {semester.id}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <table className='w-full'>
+            <thead>
+              <tr>
+                <th className='border border-gray-300 p-2'>Course Code</th>
+                <th className='border border-gray-300 p-2'>Exam Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {enrollCourseData.map((courseInput, index) => {
+                return (
+                  <tr key={index}>
+                    <td className='outline-none border border-gray-300 p-2'>
+                      <input
+                        placeholder='ICS 215'
+                        className='w-28 outline-none'
+                        value={courseInput.course_code}
+                        onChange={(e) =>
+                          handleCourseEnrollInputChange(
+                            index,
+                            "course_code",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </td>
+                    <td className='border border-gray-300 p-2'>
+                      <select
+                        className='outline-none'
+                        onChange={(e) =>
+                          handleCourseEnrollInputChange(
+                            index,
+                            "exam_type",
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option value='first attempt'>First Attempt</option>
+                        <option value='supplementary'>Suplementary</option>
+                      </select>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {enrollCourseData.map((courseInput, index) => {
-                    return (
-                      <tr key={index}>
-                        <td className='outline-none border border-gray-300 p-2'>
-                          <input
-                            placeholder='ICS 215'
-                            className='w-28 outline-none'
-                            value={courseInput.course_code}
-                            onChange={(e) =>
-                              handleCourseEnrollInputChange(
-                                index,
-                                "course_code",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className='border border-gray-300 p-2'>
-                          <select
-                            className='outline-none'
-                            onChange={(e) =>
-                              handleCourseEnrollInputChange(
-                                index,
-                                "exam_type",
-                                e.target.value
-                              )
-                            }
-                          >
-                            <option value='first attempt'>First Attempt</option>
-                            <option value='supplementary'>Suplementary</option>
-                          </select>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className='flex justify-center'>
-                <button
-                  className='bg-gray-900 text-white hover:cusor-pointer 
+                );
+              })}
+            </tbody>
+          </table>
+          <div className='flex justify-center'>
+            <button
+              className='bg-gray-900 text-white hover:cusor-pointer 
            my-3 p-2 rounded '
-                  onClick={handleEnrollCourseSubmit}
-                >
-                  Regester Courses
-                </button>
-              </div>
-            </>
+              onClick={handleEnrollCourseSubmit}
+            >
+              Regester Courses
+            </button>
+          </div>
+        </form>
+      )}
+      {userInfo?.user?.user_type === "admin" && (
+        <div className='bg-white p-3'>
+          <h2 className='text-xl font-bold p-2'>Create Course</h2>
+          {loading && <p>Loading....</p>}
+          {error && (
+            <Message onClose={() => dispatch(resetCourseState())}>{error}</Message>
           )}
-          {userInfo?.user?.user_type === "admin" && (
-            <div className=''>
-              <h2 className='text-xl font-bold p-2'>Create Course</h2>
-              {loading && <p>Loading....</p>}
-              {error && (
-                <p className='bg-red-500 p-4 rounded text-oranger-500'>
-                  {error}
-                </p>
-              )}
-              <div className='mb-2 flex gap-3 items-center'>
-                <label htmlFor='course_code' className='py-1 text-gray-600'>
+          {
+            createCourseFormErr && <Message onClose={() => setCreateCourseFormErr(null)}>{createCourseFormErr}</Message>
+          }
+          {
+            course_created && <Message variant="success" onClose={() => dispatch(resetCourseState())}>Course created successfull!</Message>
+          }
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+            <div className='col-span-1'>
+              <div className='w-full mb-2 flex gap-3 items-center'>
+                <label htmlFor='course_code' className='w-1/3 text-gray-600'>
                   Course Code
                 </label>
                 <input
                   type='text'
                   placeholder='ICS 345'
-                  className='border border-gray-300 rounded focus:outline-amber-400 p-2'
+                  className='w-2/3 border border-gray-300 rounded focus:outline-amber-400 p-2'
                   id='course_code'
                   value={courseCode}
                   onChange={(e) => setCourseCode(e.target.value)}
                 />
               </div>
-              <div className='mb-2 flex gap-3 items-center'>
-                <label htmlFor='course_name' className='py-1 text-gray-600'>
+              <div className='w-full mb-2 flex gap-3 items-center'>
+                <label
+                  htmlFor='course_name'
+                  className='w-1/3 py-1 text-gray-600'
+                >
                   Course Name
                 </label>
                 <input
                   type='text'
                   placeholder='Introduction to Databases'
-                  className='border border-gray-300 rounded focus:outline-amber-400 p-2'
+                  className='w-2/3 border border-gray-300 rounded focus:outline-amber-400 p-2'
                   id='course_name'
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
@@ -273,19 +295,48 @@ const handleEnrollCourseSubmit = (e) => {
               >
                 Create Course
               </button>
-              <div className='my-1'>
-                <Link
-                  to='/courses/list'
-                  className='bg-green-500 text-white rounded px-4 py-2'
+            </div>
+            <div className='col-span-1'>
+              <div className='w-full mb-2 flex gap-3 items-center'>
+                <label htmlFor='year' className='w-1/3 py-1 text-gray-600'>
+                  Year
+                </label>
+                <select
+                  className='w-2/3 border border-gray-300 rounded focus:outline-amber-400 p-2'
+                  id='year'
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
                 >
-                  View Courses
-                </Link>
+                  <option value=''>--Select Year--</option>
+                  <option value='1'>1</option>
+                  <option value='2'>2</option>
+                  <option value='3'>3</option>
+                  <option value='4'>4</option>
+                </select>
+              </div>
+              <div className='w-full mb-2 flex gap-3 items-center'>
+                <label htmlFor='sem' className='w-1/3 py-1 text-gray-600'>
+                  Semester
+                </label>
+                <select
+                  className='w-2/3 border border-gray-300 rounded focus:outline-amber-400 p-2'
+                  id='sem'
+                  value={sem}
+                  onChange={(e) => setSem(e.target.value)}
+                >
+                  <option value=''>--Select Semester--</option>
+                  <option value='1'>1</option>
+                  <option value='2'>2</option>
+                </select>
               </div>
             </div>
-          )}
-        </form>
-      </section>
-    </div>
+          </div>
+          <Link to='/courses' className='text-green-500 underline'>
+            Go to courses
+          </Link>
+        </div>
+      )}
+    </section>
   );
 };
 

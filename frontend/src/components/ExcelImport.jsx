@@ -32,8 +32,6 @@ const ExcelImport = () => {
         email: row[3],
         contact: row[4],
         year_joined: row[5],
-        faculty: row[6],
-        course: row[7],
         user_type: "student"
       }));
 
@@ -164,7 +162,7 @@ const ExcelImport = () => {
                     className='bg-red-500 text-white rounded px-2 py-1 text-sm'
                     onClick={() => handleDeleteUser(student.user)}
                   >
-                    Remove
+                    Deregister
                   </button>
                 </td>
               </tr>

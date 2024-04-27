@@ -181,7 +181,7 @@ const LecturerPage = () => {
                       className='bg-red-500 text-white rounded px-2 py-1 text-sm'
                       onClick={() => handleDeleteUser(lecturer.user_id)}
                     >
-                      Remove
+                      Deregister
                     </button>
                   </td>
                 </tr>

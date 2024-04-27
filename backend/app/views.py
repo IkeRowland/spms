@@ -12,6 +12,7 @@ from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment,
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_students(request):
     if request.method == 'POST':
         data = request.data
@@ -114,6 +115,7 @@ def get_lecturers(request):
 
 # Get all students
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_students(request):
     if request.method == 'GET':
         users_list = []
@@ -208,6 +210,7 @@ def login(request):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_user(request, user_id):
     if request.method == 'DELETE':
         try:
@@ -221,6 +224,7 @@ def delete_user(request, user_id):
 
 # Operations on semester
 @api_view(['POST', 'GET', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def semester_view(request, semester_id=None):
     """
     Create, Get and Delete semester objects
@@ -258,6 +262,7 @@ def semester_view(request, semester_id=None):
 
 # Create course
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_course(request):
     if request.method == 'POST':
         data = request.data
@@ -278,6 +283,7 @@ def create_course(request):
 
 # Get all courses
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_courses(request):
     if request.method == 'GET':
         courses = Course.objects.all()
@@ -288,11 +294,10 @@ def get_courses(request):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_course(request, course_id):
     if request.method == 'DELETE':
-        print(course_id)
         course_code = course_id.replace('-', ' ')
-        print(course_code)
         try:
             course = Course.objects.get(course_code=course_code)
             course.delete()
@@ -302,6 +307,7 @@ def delete_course(request, course_id):
 
 # Get all students enrolled in a given course at a given semester
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def get_course_students(request):
     """
     Get all students enrolled in a given 
@@ -371,6 +377,7 @@ def upload_marks(request):
     
 # Publish results
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def publish_results(request):
     """
     Compute grades and publish results for enrollments
@@ -603,3 +610,15 @@ def admin_get_lecturer_details(request, lecturer_id):
         except Lecturer.DoesNotExist:
             return Response({"message": "Lecturer not found!"}, status=status.HTTP_404_NOT_FOUND)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_stats(request):
+    """
+    Users stats
+    """
+    total_students = Student.objects.count()
+    total_lectures = Lecturer.objects.count()
+    total_courses = Course.objects.count()
+    return Response({"students_count": total_students, "lecturers_count": total_lectures, "courses_count": total_courses}, status=status.HTTP_200_OK)

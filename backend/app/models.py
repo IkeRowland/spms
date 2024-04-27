@@ -139,10 +139,10 @@ class Enrollment(models.Model):
 
 class Teaching(models.Model):
     course = models.ForeignKey(
-        Course, null=True, on_delete=models.SET_NULL)
+        Course, null=True, on_delete=models.CASCADE)
     lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     semester = models.ForeignKey(
-        Semester, null=True, on_delete=models.SET_NULL)
+        Semester, null=True, on_delete=models.CASCADE)
     
     class Meta:
         # Define unique constraint for lecturer and course combination

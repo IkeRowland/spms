@@ -13,8 +13,9 @@ import { getSemesters } from "./redux/actions/semesterActions";
 import { useDispatch } from "react-redux";
 import LecturerPage from "./pages/LecturerPage";
 import LecturerDetailsPage from "./pages/LecturerDetailsPage";
-import AdminCourseList from "./pages/AdminCourseList";
-import EditCoursePage from "./pages/EditCoursePage";
+import LecturerCoursesPage from "./pages/LecturerCoursesPage";
+import LecturerCourseAssignPage from "./pages/LecturerCourseAssignPage";
+import CourseListPage from "./pages/CourseListPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -31,9 +32,16 @@ function App() {
           <Route path='/students' element={<StudentsPage />} />
           <Route path='/lecturers' element={<LecturerPage />} />
           <Route path='/lecturers/:id' element={<LecturerDetailsPage />} />
-          <Route path='/courses' element={<AdminCourseList />} />
+          <Route
+            path='/lecturers/:id/courses'
+            element={<LecturerCoursesPage />}
+          />
+          <Route
+            path='/lecturers/:id/assign-course'
+            element={<LecturerCourseAssignPage />}
+          />
+          <Route path='/courses' element={<CourseListPage />} />
           <Route path='/courses/new' element={<CoursePage />} />
-          <Route path='/courses/:courseId' element={<EditCoursePage />} />
         </Route>
         <Route path='/login' element={<LoginPage />} />
         <Route path='/reset-password' element={<ResetPassPage />} />

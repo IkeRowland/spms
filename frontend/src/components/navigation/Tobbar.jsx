@@ -6,9 +6,12 @@ const Tobbar = () => {
     const current_year = new Date().getFullYear();
   return (
     <div className='bg-amber-100 border-b  px-4 py-3 flex justify-between items-center'>
-      <h4 className='text-xl font-semibold'>
-        Student Perfomance Monitoring System
-      </h4>
+      <div className=''>
+        <h4 className='text-xl font-semibold'>
+          Student Perfomance Monitoring System
+        </h4>
+        <h6>Bachelor of Education (ICT)</h6>
+      </div>
       <div className='flex items-center gap-3'>
         <span className='text-sm text-gray-600 text-right'>
           {userInfo?.user?.user_type === "admin" && (

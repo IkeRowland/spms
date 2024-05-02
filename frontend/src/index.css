@@ -13,3 +13,9 @@
   top: 0;
   right: -6px;
 }
+
+.close-import-btn{
+  position: absolute;
+  top: -12px;
+  right: -15px;
+}

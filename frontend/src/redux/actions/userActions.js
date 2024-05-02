@@ -6,7 +6,6 @@ import {
   addStudentsFail,
   addStudentsStart,
   addStudentsSuccess,
-  getStudentsFail,
   getStudentsStart,
   getStudentsSuccess,
   addLecturesFail,
@@ -18,6 +17,7 @@ import {
   deleteUserSuccess,
   getLecturerInfoSuccess,
   updateUserSuccess,
+  getStatsSuccess,
 } from "../slices/userSlices";
 import axios from "redaxios";
 import { BASE_URL } from "../../URL";
@@ -43,19 +43,43 @@ export const logout = () => (dispatch) => {
 };
 
 // ADD STUDENTS
-export const importStudents = (studentsList) => async (dispatch) => {
+export const importStudents = (studentsList) => async (dispatch, getState) => {
   try {
     dispatch(addStudentsStart());
 
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json",
+      },
+    };
+
     const { data } = await axios.post(
       `${BASE_URL}/users/add/students/`,
-      studentsList
+      studentsList,
+      config
     );
 
     dispatch(addStudentsSuccess(data));
   } catch (err) {
-    const errMsg = err?.data ? err.data.message : err.statusText;
-    dispatch(addStudentsFail(errMsg));
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(addStudentsFail(errMsg));
+    }
   }
 };
 
@@ -83,7 +107,6 @@ export const importLecturers = (lecturersList) => async (dispatch, getState) => 
 
     dispatch(addLecturesSuccess());
   } catch (err) {
-    console.log(err)
     const errMsg =
       err?.data && err?.data?.length
         ? err.data[0]?.message
@@ -102,17 +125,38 @@ export const importLecturers = (lecturersList) => async (dispatch, getState) => 
 };
 
 // LIST STUDENTS
-export const listStudents = () => async (dispatch) => {
+export const listStudents = () => async (dispatch, getState) => {
   try {
     dispatch(getStudentsStart());
 
-    const { data } = await axios.get(`${BASE_URL}/users/students/`);
-    console.log(data);
+     const {
+       user: { userInfo },
+     } = getState();
+
+     const config = {
+       headers: {
+         Authorization: `Bearer ${userInfo?.token?.access}`,
+         "Content-Type": "application/json",
+       },
+     };
+
+    const { data } = await axios.get(`${BASE_URL}/users/students/`, config);
     dispatch(getStudentsSuccess(data));
   } catch (err) {
-    console.log(err);
-    const errMsg = err?.data ? err.data.message : err.statusText;
-    dispatch(getStudentsFail)(errMsg);
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(actionFail(errMsg));
+    }
   }
 };
 
@@ -269,3 +313,44 @@ export const getLecturerDetails = (lecturerId) => async (dispatch, getState) => 
     }
   }
 };
+
+// Admin Stats
+export const getAdminStats = () => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    const { data } = await axios.get(
+      `${BASE_URL}/stats/`,
+      config
+    );
+
+    dispatch(getStatsSuccess(data));
+  } catch (err) {
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+      dispatch(actionFail("Your session has expired"));
+    } else {
+      dispatch(actionFail(errMsg));
+    }
+  }
+}

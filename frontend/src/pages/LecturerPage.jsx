@@ -15,6 +15,7 @@ const LecturerPage = () => {
   const [file, setFile] = useState("");
   const [fileErr, setFileErr] = useState("");
   const [successImport, setSuccessImport] = useState(null);
+  const [showImportBtn, setShowImportBtn] = useState(false);
 
   const {
     loading,
@@ -57,8 +58,6 @@ const LecturerPage = () => {
     setFile(e.target.files[0]);
   };
 
-  console.log(error);
-
   const handleDeleteUser = (userId) => {
     alert("Are you sure you want to delete the user?");
     dispatch(deleteUser(userId));
@@ -90,19 +89,45 @@ const LecturerPage = () => {
     <div className='w-full'>
       <div className='flex justify-between items-center mb-4'>
         <h2 className='text-2xl font-semibold'>Lecturers</h2>
-        <div className='flex gap-3'>
-          <input
-            type='file'
-            onChange={handleFileChange}
-            className='border focus:outline-gray-900 px-4 py-1 rounded'
-          />
-          <button
-            className='bg-gray-900 text-white px-4 py-2 rounded'
-            onClick={importFromExcel}
-          >
-            Read Excel File
-          </button>
-        </div>
+        {!showImportBtn ? (
+          <span className='flex gap-5 items-center border text-sm text-gray-600 p-2'>
+            <span>
+              <h6 className='text-xl font-semibold text-gray-900'>
+                Import Lecturers
+              </h6>
+              <p>
+                To Import lecturers data, please click on Import, select an excel
+                file and upload data.
+              </p>
+            </span>
+            <button
+              className='bg-gray-900 text-white px-4 py-2 rounded'
+              onClick={() => setShowImportBtn(true)}
+            >
+              Import
+            </button>
+          </span>
+        ) : (
+          <div className='flex gap-3 border p-2 relative'>
+            <input
+              type='file'
+              onChange={handleFileChange}
+              className='border focus:outline-gray-900 px-4 py-1 rounded'
+            />
+            <button
+              className='bg-gray-900 text-white px-4 py-2 rounded'
+              onClick={importFromExcel}
+            >
+              Upload data
+            </button>
+            <button
+              className='bg-gray-200 h-6 w-6 text-gray-900 rounded-full flex justify-center items-center absolute top-0 close-import-btn'
+              onClick={() => setShowImportBtn(false)}
+            >
+              x
+            </button>
+          </div>
+        )}
       </div>
       <section className='w-full overflow-x-auto'>
         {loading && <p>Loading...</p>}
@@ -110,7 +135,9 @@ const LecturerPage = () => {
           <Message onClose={() => dispatch(resetState())}>{error}</Message>
         )}
         {successImport && (
-         <Message variant="success" onClose={() => setSuccessImport(null)}>{successImport}</Message>
+          <Message variant='success' onClose={() => setSuccessImport(null)}>
+            {successImport}
+          </Message>
         )}
         {fileErr && (
           <Message onClose={() => setFileErr(null)}>{fileErr}</Message>
@@ -154,7 +181,7 @@ const LecturerPage = () => {
                       className='bg-red-500 text-white rounded px-2 py-1 text-sm'
                       onClick={() => handleDeleteUser(lecturer.user_id)}
                     >
-                      Delete
+                      Deregister
                     </button>
                   </td>
                 </tr>

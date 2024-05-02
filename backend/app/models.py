@@ -65,8 +65,6 @@ class Student(models.Model):
     reg_no = models.CharField(max_length=20, unique=True)
     index_no = models.CharField(max_length=20)
     year_joined = models.IntegerField()
-    faculty = models.CharField(max_length=200)
-    course = models.CharField(max_length=200)
 
     def __str__(self):
         return self.reg_no
@@ -141,10 +139,10 @@ class Enrollment(models.Model):
 
 class Teaching(models.Model):
     course = models.ForeignKey(
-        Course, null=True, on_delete=models.SET_NULL)
+        Course, null=True, on_delete=models.CASCADE)
     lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     semester = models.ForeignKey(
-        Semester, null=True, on_delete=models.SET_NULL)
+        Semester, null=True, on_delete=models.CASCADE)
     
     class Meta:
         # Define unique constraint for lecturer and course combination

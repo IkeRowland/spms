@@ -25,15 +25,38 @@ import {
 } from "../slices/userSlices";
 import { logout } from "./userActions";
 
-export const createCourse = (courseData) => async (dispatch) => {
+export const createCourse = (courseData) => async (dispatch, getState) => {
   try {
     dispatch(createCourseStart());
 
-    await axios.post(`${BASE_URL}/courses/create/`, courseData);
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    await axios.post(`${BASE_URL}/courses/create/`, courseData, config);
     dispatch(createCourseSuccess());
   } catch (err) {
-    const errMsg = err?.data ? err.data.message : err.statusText;
-    dispatch(createCourseFail(errMsg));
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(createCourseFail(errMsg));
+    }
   }
 };
 
@@ -149,16 +172,38 @@ export const enrollCourses = (courseData) => async (dispatch, getState) => {
   }
 };
 
-export const deleteCourse = (course_id) => async (dispatch) => {
+export const deleteCourse = (course_id) => async (dispatch, getState) => {
   const course_code = course_id.replace(' ', '-');
   try {
     dispatch(deleteCourseStart());
 
-    await axios.delete(`${BASE_URL}/courses/${course_code}/delete/`);
+     const {
+       user: { userInfo },
+     } = getState();
+
+     const config = {
+       headers: {
+         Authorization: `Bearer ${userInfo?.token?.access}`,
+       },
+     };
+
+    await axios.delete(`${BASE_URL}/courses/${course_code}/delete/`, config);
     dispatch(deleteCourseSuccess());
   } catch (err) {
-    const errMsg = err?.data ? err.data.message : err.statusText;
-    dispatch(deleteCourseFail(errMsg));
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(deleteCourseFail(errMsg));
+    }
   }
 };
 

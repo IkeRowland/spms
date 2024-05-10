@@ -128,6 +128,7 @@ class Enrollment(models.Model):
     semester = models.ForeignKey(Semester, null=True, on_delete=models.SET_NULL)
     coursework_marks = models.IntegerField(null=True, default=0)
     exam_marks = models.IntegerField(null=True, default=0)
+    score = models.IntegerField(null=True, default=0)
     exam_type = models.CharField(
         max_length=100, choices=EXAM_TYPE_CHOICES, default='first attempt')
     result_permission = models.ForeignKey(ResultPermission, null=True, on_delete=models.SET_NULL)

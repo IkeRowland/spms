@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import get_object_or_404
 from .helpers import generate_random_password, send_password_email
-from django.db.models import Count
+from django.db.models import Count, Avg
 import json
 from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer, ResultPermissionSerializer
 from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission, Teaching
@@ -446,6 +446,7 @@ def publish_results(request):
                 try:
                     enrollment = Enrollment.objects.get(id=enrollment.id)
                     enrollment.grade = grade
+                    enrollment.score = total_marks
                     enrollment.save()
                 except Enrollment.DoesNotExist:
                     pass
@@ -557,15 +558,50 @@ def get_perfomance_stats(request):
     """
     Gets current user perfomance stats 
     """
+    # Get the current user
     user = request.user
-    enrollments = Enrollment.objects.filter(student__user=user)
 
-    # Count occurrences of each grade
-    grade_stats = enrollments.values('grade').annotate(count=Count('grade'))
+    # Filter enrollments
+    enrollments = Enrollment.objects.filter(
+        student__user=user, result_permission__marks_published=True
+    )
 
-    # Example output: [{'grade': 'A', 'count': 10}, {'grade': 'B', 'count': 5}, ...]
+    # Count the number of grades
+    grade_counts = enrollments.values('grade').annotate(count=Count('grade'))
 
-    return Response(grade_stats, status=status.HTTP_200_OK)
+    # Define the grade scale
+    grade_scale = ["A", "B", "C", "D", "E"]
+
+    # Initialize a dictionary to store grade counts
+    grade_counts_dict = {grade: 0 for grade in grade_scale}
+    for grade_count in grade_counts:
+        grade_counts_dict[grade_count['grade']] = grade_count['count']
+
+    # Determine positive/negative counts
+    positive_grades = ["A", "B"]
+    negative_grades = ["D", "E"]
+
+    # Analyze the counts
+    analysis = {}
+    for grade in grade_scale:
+        count = grade_counts_dict[grade]
+        if grade in positive_grades:
+            analysis[grade] = "Positive" if count > 5 else "Negative"
+        elif grade in negative_grades:
+            analysis[grade] = "Positive" if count < 3 else "Negative"
+        else:
+            analysis[grade] = "Neutral"
+    
+    semester_averages = enrollments.values('semester').annotate(avg_score=Avg('score'))
+
+    # Prepare response data
+    data = {
+        "grade_counts": grade_counts_dict,
+        "analysis": analysis,
+        "semester_averages": list(semester_averages)
+    }
+
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

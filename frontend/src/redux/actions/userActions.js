@@ -19,6 +19,7 @@ import {
   updateUserSuccess,
   getStatsSuccess,
   getResultsSuccess,
+  getStudentStatsSuccess,
 } from "../slices/userSlices";
 import axios from "redaxios";
 import { BASE_URL } from "../../URL";
@@ -379,6 +380,41 @@ export const getStudentResults = () => async (dispatch, getState) => {
       config
     );
     dispatch(getResultsSuccess(data));
+  } catch (err) {
+    const errMsg = err?.data
+      ? err.data?.message || err.data?.detail
+      : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    }
+    dispatch(actionFail(errMsg));
+  }
+};
+
+
+// Get students perfomance stats
+export const getStudentPerfomanceStats = () => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `${BASE_URL}/courses/results/stats/`,
+      config
+    );
+    dispatch(getStudentStatsSuccess(data));
   } catch (err) {
     const errMsg = err?.data
       ? err.data?.message || err.data?.detail

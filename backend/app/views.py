@@ -103,6 +103,8 @@ def add_lecturers(request):
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Get all Lecturers
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_lecturers(request):
@@ -111,11 +113,14 @@ def get_lecturers(request):
     """
     if request.method == 'GET':
         lecturers = Lecturer.objects.all()
-        users = [{'lecturer_id': lecturer.id, 'user_id': lecturer.user.id, 'staff_no': lecturer.staff_no, 'full_name': lecturer.user.username, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
+        users = [{'lecturer_id': lecturer.id, 'user_id': lecturer.user.id, 'staff_no': lecturer.staff_no,
+                  'full_name': lecturer.user.username, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
         return Response(users, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Get all students
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_students(request):
@@ -134,6 +139,8 @@ def get_students(request):
         return Response(users_list, status=status.HTTP_200_OK)
 
 # Update profile
+
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
@@ -153,7 +160,7 @@ def update_profile(request):
         user.save()
         return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 # Login
 @api_view(['POST'])
@@ -282,7 +289,8 @@ def create_course(request):
             result_permission_data = {
                 "course": course.course_code
             }
-            result_permission_serializer = ResultPermissionSerializer(data=result_permission_data)
+            result_permission_serializer = ResultPermissionSerializer(
+                data=result_permission_data)
             if result_permission_serializer.is_valid():
                 result_permission_serializer.save()
             else:
@@ -317,6 +325,8 @@ def delete_course(request, course_id):
             return Response({"message": "Course not found!"}, status=status.HTTP_404_NOT_FOUND)
 
 # Get all students enrolled in a given course at a given semester
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_course_students(request):
@@ -348,18 +358,21 @@ def get_course_students(request):
     """
     user = request.user
     course_code = request.data.get('course_code')
-    teaching = Teaching.objects.filter(lecturer__user__id=user.id, course__course_code=course_code)[0]
+    teaching = Teaching.objects.filter(
+        lecturer__user__id=user.id, course__course_code=course_code)[0]
 
     # Retrieve enrollments for the specified course and semester
     enrollments = Enrollment.objects.filter(
         course_code__course_code=course_code, semester__id=teaching.semester.id)
-    is_published = ResultPermission.objects.get(course__course_code=course_code).marks_published
-
+    is_published = ResultPermission.objects.get(
+        course__course_code=course_code).marks_published
 
     # Extract student details from enrollments
-    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks': enrollment.coursework_marks,'exam_marks': enrollment.exam_marks, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name,
+                 'coursework_marks': enrollment.coursework_marks, 'exam_marks': enrollment.exam_marks, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
     return Response({'course': course_code, 'students': students, 'published': is_published}, status=status.HTTP_200_OK)
+
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -373,7 +386,6 @@ def upload_marks(request):
             # Get the existing Enrollment object
             enrollment_id = enrollment_data.get('enrollment_id')
             enrollment = get_object_or_404(Enrollment, id=enrollment_id)
-            result_permission = ResultPermission.objects.get(course_id=enrollment.course_code.course_code)
 
             # Update only the coursework_marks and exam_marks fields
             serializer = EnrollmentSerializer(
@@ -385,15 +397,15 @@ def upload_marks(request):
 
             if serializer.is_valid():
                 serializer.save()
-                result_permission.marks_published = False
-                result_permission.save()
             else:
                 # Handle invalid serializer data
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "Marks uploaded successfully"}, status=status.HTTP_200_OK)
-    
+
 # Publish results
+
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def publish_results(request):
@@ -437,7 +449,8 @@ def publish_results(request):
                     enrollment.save()
                 except Enrollment.DoesNotExist:
                     pass
-        result_permission = ResultPermission.objects.get(course__course_code=course_code)
+        result_permission = ResultPermission.objects.get(
+            course__course_code=course_code)
         result_permission.marks_published = True
         result_permission.save()
         return Response({"message": "Results published successfully"}, status=status.HTTP_200_OK)
@@ -456,9 +469,44 @@ def get_student_courses(request):
 
     # Extract student details from enrollments
     courses = [{'enrollment_id': enrollment.id, 'course_code': enrollment.course_code.course_code, 'course_name': enrollment.course_code.course_name,
-                'exam_type': enrollment.exam_type, "semester": enrollment.semester.id} for enrollment in enrollments]
+                'exam_type': enrollment.exam_type, "semester": enrollment.semester.id} for enrollment in enrollments if enrollment is not None]
+
 
     return Response(courses, status=status.HTTP_200_OK)
+
+# Get student courses
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_student_results(request):
+    """
+    Get current user courses
+    """
+    user = request.user
+    enrollments = Enrollment.objects.filter(
+        student__user__id=user.id, result_permission__marks_published=True)
+    
+    # Initialize a dictionary to store courses by semester
+    courses_by_semester = {}
+
+    # Iterate over the enrollments and organize courses by semester
+    for enrollment in enrollments:
+        if enrollment is not None:
+            semester_id = enrollment.semester.id
+            course_details = {
+                'enrollment_id': enrollment.id,
+                'course_code': enrollment.course_code.course_code,
+                'course_name': enrollment.course_code.course_name,
+                'grade': enrollment.grade
+            }
+            # Initialize the semester entry in the dictionary if not present
+            if semester_id not in courses_by_semester:
+                courses_by_semester[semester_id] = []
+            # Add the course details to the dictionary under the semester
+            courses_by_semester[semester_id].append(course_details)
+
+    return Response(courses_by_semester, status=status.HTTP_200_OK)
 
 
 # Enroll student to course
@@ -533,7 +581,7 @@ def get_course_perfomance_stats(request):
 
     # Count occurrences of each grade
     grade_stats = enrollments.values('grade').annotate(count=Count('grade'))
-    
+
     return Response(grade_stats, status=status.HTTP_200_OK)
 
 
@@ -547,11 +595,14 @@ def get_lecturer_courses(request):
     if request.method == 'GET':
         user = request.user
         teachings = Teaching.objects.filter(lecturer__user__id=user.id)
-        courses = [{'teaching_id': teaching.id, 'course_code': teaching.course.course_code,'course_name': teaching.course.course_name, 'semester': teaching.semester.id} for teaching in teachings]
+        courses = [{'teaching_id': teaching.id, 'course_code': teaching.course.course_code,
+                    'course_name': teaching.course.course_name, 'semester': teaching.semester.id} for teaching in teachings]
         return Response(courses, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Get course lecturers
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_courses_lecturers(request):
@@ -560,11 +611,14 @@ def get_courses_lecturers(request):
     """
     if request.method == 'GET':
         teachings = Teaching.objects.all()
-        courses = [{'teaching_id': teaching.id, 'course_code': teaching.course.course_code, 'course_name': teaching.course.course_name, 'semester': teaching.semester.id, 'full_name': teaching.lecturer.user.full_name, 'lecturer_id': teaching.lecturer.id} for teaching in teachings]
+        courses = [{'teaching_id': teaching.id, 'course_code': teaching.course.course_code, 'course_name': teaching.course.course_name,
+                    'semester': teaching.semester.id, 'full_name': teaching.lecturer.user.full_name, 'lecturer_id': teaching.lecturer.id} for teaching in teachings]
         return Response(courses, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Admin assign lecturer courses
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def allocate_lecturer_course(request, lecturer_id):
@@ -613,11 +667,14 @@ def allocate_lecturer_course(request, lecturer_id):
 def admin_get_lecturer_courses(request, lecturer_id):
     if request.method == 'GET':
         teachings = Teaching.objects.filter(lecturer__id=lecturer_id)
-        courses = [{"teaching_id": teaching.id, "course_code": teaching.course.course_code, "course_name": teaching.course.course_name, "semester": teaching.semester.id} for teaching in teachings]
+        courses = [{"teaching_id": teaching.id, "course_code": teaching.course.course_code,
+                    "course_name": teaching.course.course_name, "semester": teaching.semester.id} for teaching in teachings]
         return Response(courses, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)
 
 # Admin get lecturer details
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_get_lecturer_details(request, lecturer_id):

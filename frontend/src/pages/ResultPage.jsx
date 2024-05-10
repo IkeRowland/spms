@@ -9,12 +9,13 @@ import {
 } from "../redux/actions/courseActions";
 import Message from "../components/Message";
 import { resetState } from "../redux/slices/userSlices";
+import { getStudentResults } from "../redux/actions/userActions";
 
 const ResultPage = () => {
   const dispatch = useDispatch();
   const { myCourses } = useSelector((state) => state.user);
   const { classList, saving, error, published, saved } = useSelector((state) => state.course);
-  const { userInfo } = useSelector((state) => state.user);
+  const { userInfo, myResults } = useSelector((state) => state.user);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [enrollments, setEnrollments] = useState([]);
 
@@ -86,6 +87,14 @@ const ResultPage = () => {
     // Cleanup function to clear the timeout on component unmount or when the timeout is reset
     return () => clearTimeout(newTimeoutId);
   }, [dispatch, enrollments]); // Trigger the effect whenever enrollments change
+
+  useEffect(() => {
+    if (userInfo?.user?.user_type === 'student'){
+      dispatch(getStudentResults());
+    }
+  }, [dispatch, userInfo])
+
+  console.log(myResults)
   return (
     <>
       {/* For the Lecturer */}
@@ -155,9 +164,11 @@ const ResultPage = () => {
             >
               Changes not saved! check your internet...
             </p>
-            {
-              published && <Message variant="success" onClose={() => dispatch(resetState())}>Results published!</Message>
-            }
+            {published && (
+              <Message variant='success' onClose={() => dispatch(resetState())}>
+                Results published!
+              </Message>
+            )}
             <table className='w-max text-gray-600 border border-collapse border-gray-300'>
               <thead>
                 <tr>
@@ -243,7 +254,7 @@ const ResultPage = () => {
       {userInfo?.user?.user_type === "student" && (
         <section className='bg-slate-100 shadow-sm p-4'>
           <div className='flex flex-col items-center bg-white p-4'>
-            <h3 className='text-gray-600 uppercase'>WAMAE JOSEPH NDIRITU</h3>
+            <h3 className='text-gray-600 uppercase'>{userInfo?.user?.full_name}</h3>
             <h6 className='text-gray-600 uppercase'>FACULTY OF EDUCATION</h6>
             <h6 className='text-gray-600 uppercase'>
               Bachelor of Education (ICT)
@@ -263,48 +274,39 @@ const ResultPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td className='border border-gray-300 p-2'>1</td>
-                  <td className='border border-gray-300 p-2'>ICS 113</td>
-                  <td className='border border-gray-300 p-2'>
-                    Introduction to Programming
-                  </td>
-                  <td className='border border-gray-300 p-2'>A</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>2</td>
-                  <td className='border border-gray-300 p-2'>ICS 230</td>
-                  <td className='border border-gray-300 p-2'>
-                    Operating Systems
-                  </td>
-                  <td className='border border-gray-300 p-2'>A</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>3</td>
-                  <td className='border border-gray-300 p-2'>ICS 116</td>
-                  <td className='border border-gray-300 p-2'>
-                    Introduction to Database
-                  </td>
-                  <td className='border border-gray-300 p-2'>A</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>4</td>
-                  <td className='border border-gray-300 p-2'>ICS 217</td>
-                  <td className='border border-gray-300 p-2'>
-                    Digital Electronics
-                  </td>
-                  <td className='border border-gray-300 p-2'>B</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>5</td>
-                  <td className='border border-gray-300 p-2'>ICS 115</td>
-                  <td className='border border-gray-300 p-2'>
-                    Discrete Mathematics
-                  </td>
-                  <td className='border border-gray-300 p-2'>B</td>
-                </tr>
-              </tbody>
+                {Object.entries(myResults).map(
+                  ([semesterId, courses]) => ({
+                    id: semesterId,
+                    courses: Object.values(courses),
+                  })
+                ).map((item) => {
+                  console.log(item);
+                  return (
+                    <tbody key={item.id}>
+                      <tr className='border border-gray-300 '>
+                        <td className='p-2'>{item.id}</td>
+                      </tr>
+                      {
+                        item.courses.map((course, index) => {
+                          return (
+                            <tr key={course.enrollment_id}>
+                              <td className='border border-gray-300 p-2'>{index + 1}</td>
+                              <td className='border border-gray-300 p-2'>
+                                {course.course_code}
+                              </td>
+                              <td className='border border-gray-300 p-2'>
+                                {course.course_name}
+                              </td>
+                              <td className='border border-gray-300 p-2'>
+                                {course.grade}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      }
+                    </tbody>
+                  );
+                })}
             </table>
           </div>
         </section>

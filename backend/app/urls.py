@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import add_students, delete_user, login, get_students, create_course, get_courses, delete_course, semester_view, get_course_students, enroll_course, get_student_courses, upload_marks, publish_results, get_perfomance_stats, get_course_perfomance_stats, update_profile, add_lecturers, get_lecturers, allocate_lecturer_course, get_lecturer_courses, get_courses_lecturers, admin_get_lecturer_courses, admin_get_lecturer_details, get_stats
+from .views import add_students, delete_user, login, get_students, create_course, get_courses, delete_course, semester_view, get_course_students, enroll_course, get_student_courses, upload_marks, publish_results, get_perfomance_stats, get_course_perfomance_stats, update_profile, add_lecturers, get_lecturers, allocate_lecturer_course, get_lecturer_courses, get_courses_lecturers, admin_get_lecturer_courses, admin_get_lecturer_details, get_stats, get_student_results
 
 urlpatterns = [
     path('stats/', get_stats),
@@ -21,6 +21,7 @@ urlpatterns = [
     path('courses/students/', get_course_students),
     path('courses/enroll/', enroll_course),
     path('courses/enrolled/', get_student_courses),
+    path('courses/enrolled/results/', get_student_results),
     path('courses/results/upload/', upload_marks),
     path('courses/results/stats/', get_perfomance_stats),
     path('courses/stats/', get_course_perfomance_stats),

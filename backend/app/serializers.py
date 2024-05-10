@@ -49,3 +49,8 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = ['course_code', 'student', 'semester', 'result_permission', 'exam_type', 'coursework_marks', 'exam_marks']
+
+class ResultPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResultPermission
+        fields = ['id', 'course', 'marks_published']

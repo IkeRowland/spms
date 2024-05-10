@@ -7,7 +7,7 @@ from rest_framework.generics import get_object_or_404
 from .helpers import generate_random_password, send_password_email
 from django.db.models import Count
 import json
-from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer
+from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer, ResultPermissionSerializer
 from .models import CustomUser, Student, Lecturer, Course, Semester, Enrollment, ResultPermission, Teaching
 
 
@@ -278,7 +278,16 @@ def create_course(request):
 
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            course = serializer.save()
+            result_permission_data = {
+                "course": course.course_code
+            }
+            result_permission_serializer = ResultPermissionSerializer(data=result_permission_data)
+            if result_permission_serializer.is_valid():
+                result_permission_serializer.save()
+            else:
+                course.delete()
+                return Response({"message": "Error creating course!"}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({"message": "Course already exists!"}, status=status.HTTP_400_BAD_REQUEST)
 

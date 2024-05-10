@@ -81,6 +81,7 @@ export const courseSlice = createSlice({
       state.course_created = false;
       state.error = null;
       state.courseDelete = false;
+      state.enrolled = false;
     },
   },
 });

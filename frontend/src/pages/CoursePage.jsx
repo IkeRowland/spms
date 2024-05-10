@@ -20,7 +20,6 @@ const CoursePage = () => {
   const { semesters } = useSelector((state) => state.semester);
   const {
     userInfo,
-    error: errorUser,
     enrolled,
   } = useSelector((state) => state.user);
   const [courseCode, setCourseCode] = useState("");
@@ -89,15 +88,7 @@ const CoursePage = () => {
   }, [course_created, error]);
 
   useEffect(() => {
-    dispatch(getCourses());
-  }, [dispatch]);
-
-  useEffect(() => {
-    dispatch(getMyCourses());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (errorUser) {
+    if (enrolled){
       setEnrollCourseData(
         Array.from({ length: 5 }, () => ({
           course_code: "",
@@ -106,13 +97,15 @@ const CoursePage = () => {
         }))
       );
     }
-  }, [errorUser]);
+  }, [enrolled])
 
   useEffect(() => {
-    if (enrolled) {
-      dispatch(getMyCourses());
-    }
-  }, [dispatch, enrolled]);
+    dispatch(getCourses());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(getMyCourses());
+  }, [dispatch]);
 
   return (
     <section className={`bg-gray-300 p-4 w-full`}>
@@ -124,6 +117,9 @@ const CoursePage = () => {
               {error}
             </Message>
           )}
+          {
+            enrolled && <Message variant="success" onClose={() => dispatch(resetCourseState())}>Course registered successfully!</Message>
+          }
           <div className='w-full flex items-center justify-between'>
             <h2 className='text-xl font-bold p-2'> Register Course</h2>
             <div className='flex gap-5 items-center'>
@@ -131,6 +127,7 @@ const CoursePage = () => {
               <select
                 className='border border-gray-300 p-2 outline-none my-2'
                 onChange={(e) => setSemester(e.target.value)}
+                value={semester}
               >
                 <option>--Select Semester--</option>
                 {semesters.map((semester) => {
@@ -196,7 +193,8 @@ const CoursePage = () => {
             >
               Regester Courses
             </button>
-            <Link to='/courses'
+            <Link
+              to='/courses'
               className='md:w-1/3 bg-green-600 text-white hover:cusor-pointer 
            my-3 p-2 rounded '
             >

@@ -7,11 +7,13 @@ import {
   getMyCourses,
   publishResults,
 } from "../redux/actions/courseActions";
+import Message from "../components/Message";
+import { resetState } from "../redux/slices/userSlices";
 
 const ResultPage = () => {
   const dispatch = useDispatch();
   const { myCourses } = useSelector((state) => state.user);
-  const { classList, saving, error, published } = useSelector((state) => state.course);
+  const { classList, saving, error, published, saved } = useSelector((state) => state.course);
   const { userInfo } = useSelector((state) => state.user);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [enrollments, setEnrollments] = useState([]);
@@ -127,7 +129,7 @@ const ResultPage = () => {
                   Download Class List
                 </button>
               )}
-              {!classList?.published && (
+              {((classList && !classList?.published) || saved) && (
                 <button
                   type='button'
                   className='bg-green-600 px-4 py-1 text-white'
@@ -153,6 +155,9 @@ const ResultPage = () => {
             >
               Changes not saved! check your internet...
             </p>
+            {
+              published && <Message variant="success" onClose={() => dispatch(resetState())}>Results published!</Message>
+            }
             <table className='w-max text-gray-600 border border-collapse border-gray-300'>
               <thead>
                 <tr>

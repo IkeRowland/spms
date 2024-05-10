@@ -11,6 +11,7 @@ const initialState = {
   assigned: false,
   courseDelete: false,
   published: false,
+  saved: false,
 };
 
 export const courseSlice = createSlice({
@@ -82,12 +83,14 @@ export const courseSlice = createSlice({
     publishResultSuccess: (state) => {
       state.loading = false;
       state.published = true;
+      state.saved = false;
     },
     savingStart: (state) => {
       state.saving = true;
     },
     savingSuccess: (state) => {
       state.saving = false;
+      state.saved = true;
     },
     savingFail: (state, action) => {
       state.saving = false;

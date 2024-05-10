@@ -373,6 +373,7 @@ def upload_marks(request):
             # Get the existing Enrollment object
             enrollment_id = enrollment_data.get('enrollment_id')
             enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+            result_permission = ResultPermission.objects.get(course_id=enrollment.course_code.course_code)
 
             # Update only the coursework_marks and exam_marks fields
             serializer = EnrollmentSerializer(
@@ -384,6 +385,8 @@ def upload_marks(request):
 
             if serializer.is_valid():
                 serializer.save()
+                result_permission.marks_published = False
+                result_permission.save()
             else:
                 # Handle invalid serializer data
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

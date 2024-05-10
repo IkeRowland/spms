@@ -99,13 +99,15 @@ export const importLecturers = (lecturersList) => async (dispatch, getState) => 
       },
     };
     
-    await axios.post(
+    const {data} = await axios.post(
       `${BASE_URL}/users/add/lecturers/`,
       lecturersList,
       config
     );
 
-    dispatch(addLecturesSuccess());
+    console.log(data)
+
+    dispatch(addLecturesSuccess(data));
   } catch (err) {
     const errMsg =
       err?.data && err?.data?.length

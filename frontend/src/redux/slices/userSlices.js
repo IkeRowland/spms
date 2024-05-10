@@ -13,6 +13,7 @@ const initialState = {
   deleted: false,
   created: false,
   updated: false,
+  updateInfo: {},
   lecturerInfo: {},
   stats: {},
 };
@@ -42,7 +43,7 @@ export const userSlice = createSlice({
     },
     addStudentsSuccess: (state, action) => {
       state.loading = false;
-      state.students = action.payload;
+      state.updateInfo = action.payload;
     },
     addStudentsFail: (state, action) => {
       state.loading = false;
@@ -52,9 +53,10 @@ export const userSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    addLecturesSuccess: (state) => {
+    addLecturesSuccess: (state, action) => {
       state.loading = false;
       state.created = true;
+      state.updateInfo = action.payload;
     },
     addLecturesFail: (state, action) => {
       state.loading = false;
@@ -122,6 +124,7 @@ export const userSlice = createSlice({
       state.error = null;
       state.created = false;
       state.updated = false;
+      state.updateInfo = {};
     },
     getStatsSuccess: (state, action) => {
       state.loading = false;

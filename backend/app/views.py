@@ -18,6 +18,8 @@ def add_students(request):
         data = request.data
         usersList = []
         errors = []
+        save_count = 0
+        total_items = len(data)
         for userObj in data:
             userObj["username"] = userObj['reg_no']
             userObj["password"] = userObj['index_no']
@@ -48,13 +50,12 @@ def add_students(request):
                         }
 
                         usersList.append(user_data)
+                        save_count += 1
                     else:
                         errors.append(student_serializer.errors)
                 else:
                     errors.append(serializer.errors)
-        if len(errors) > 0:
-            return Response({"message": "Some data were not valid!"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(usersList, status=status.HTTP_201_CREATED)
+        return Response({"updates_count": save_count, "total_items": total_items}, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -70,6 +71,8 @@ def add_lecturers(request):
         errors = []
         if len(data) == 0:
             return Response({"message": "Empty file!"}, status=status.HTTP_400_BAD_REQUEST)
+        save_count = 0
+        total_items = len(data)
         for userObj in data:
             random_pass = generate_random_password()
             userObj['username'] = userObj.get('staff_no')
@@ -90,14 +93,13 @@ def add_lecturers(request):
                         **serializer.data,
                         **lecturer_serializer.data
                     }
+                    save_count += 1
                     usersList.append(user_data)
                 else:
                     errors.append(lecturer_serializer.errors)
             else:
                 errors.append(serializer.errors)
-        if len(errors) > 0:
-            return Response({"message": "Some data were not valid!"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(usersList, status=status.HTTP_201_CREATED)
+        return Response({"updates_count": save_count, "total_items": total_items}, status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Get all Lecturers

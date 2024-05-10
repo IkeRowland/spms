@@ -22,7 +22,7 @@ const LecturerPage = () => {
     lecturers: lecturersList,
     error,
     deleted,
-    created,
+    updateInfo,
   } = useSelector((state) => state.user);
 
   const importFromExcel = () => {
@@ -64,26 +64,26 @@ const LecturerPage = () => {
   };
 
   useEffect(() => {
-    if (created) {
-      setSuccessImport("All data has been uploaded successfully!");
+    if (updateInfo?.total_items) {
+      setSuccessImport(`${updateInfo?.updates_count}/${updateInfo?.total_items} added successfully!`);
     }
     const timeout = setTimeout(() => {
       dispatch(resetState());
       setSuccessImport(null);
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timeout);
-  }, [dispatch, created]);
+  }, [dispatch, updateInfo]);
 
   useEffect(() => {
     dispatch(listLecturers());
   }, [dispatch]);
 
   useEffect(() => {
-    if (deleted) {
+    if (deleted || updateInfo?.total_items) {
       dispatch(listLecturers());
     }
-  }, [dispatch, deleted]);
+  }, [dispatch, deleted, updateInfo]);
 
   return (
     <div className='w-full'>
@@ -96,8 +96,8 @@ const LecturerPage = () => {
                 Import Lecturers
               </h6>
               <p>
-                To Import lecturers data, please click on Import, select an excel
-                file and upload data.
+                To Import lecturers data, please click on Import, select an
+                excel file and upload data.
               </p>
             </span>
             <button
@@ -111,6 +111,8 @@ const LecturerPage = () => {
           <div className='flex gap-3 border p-2 relative'>
             <input
               type='file'
+              id='file'
+              accept='.xlsx, .ods'
               onChange={handleFileChange}
               className='border focus:outline-gray-900 px-4 py-1 rounded'
             />

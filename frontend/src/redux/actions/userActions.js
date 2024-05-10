@@ -18,6 +18,8 @@ import {
   getLecturerInfoSuccess,
   updateUserSuccess,
   getStatsSuccess,
+  getResultsSuccess,
+  getStudentStatsSuccess,
 } from "../slices/userSlices";
 import axios from "redaxios";
 import { BASE_URL } from "../../URL";
@@ -84,9 +86,53 @@ export const importStudents = (studentsList) => async (dispatch, getState) => {
 };
 
 // Import lecturer data
-export const importLecturers = (lecturersList) => async (dispatch, getState) => {
+export const importLecturers =
+  (lecturersList) => async (dispatch, getState) => {
+    try {
+      dispatch(addLecturesStart());
+
+      const {
+        user: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo?.token?.access}`,
+          "Content-Type": "application/json",
+        },
+      };
+
+      const { data } = await axios.post(
+        `${BASE_URL}/users/add/lecturers/`,
+        lecturersList,
+        config
+      );
+
+      console.log(data);
+
+      dispatch(addLecturesSuccess(data));
+    } catch (err) {
+      const errMsg =
+        err?.data && err?.data?.length
+          ? err.data[0]?.message
+          : err?.data
+          ? err.data?.message || err.data?.detail
+          : err.statusText;
+      if (
+        errMsg === "Authentication credentials were not provided." ||
+        errMsg === "Given token not valid for any token type"
+      ) {
+        dispatch(logout());
+      } else {
+        dispatch(addLecturesFail(errMsg));
+      }
+    }
+  };
+
+// LIST STUDENTS
+export const listStudents = () => async (dispatch, getState) => {
   try {
-    dispatch(addLecturesStart());
+    dispatch(getStudentsStart());
 
     const {
       user: { userInfo },
@@ -98,47 +144,6 @@ export const importLecturers = (lecturersList) => async (dispatch, getState) => 
         "Content-Type": "application/json",
       },
     };
-    
-    await axios.post(
-      `${BASE_URL}/users/add/lecturers/`,
-      lecturersList,
-      config
-    );
-
-    dispatch(addLecturesSuccess());
-  } catch (err) {
-    const errMsg =
-      err?.data && err?.data?.length
-        ? err.data[0]?.message
-        : err?.data
-        ? err.data?.message || err.data?.detail
-        : err.statusText;
-    if (
-      errMsg === "Authentication credentials were not provided." ||
-      errMsg === "Given token not valid for any token type"
-    ) {
-      dispatch(logout());
-    } else {
-      dispatch(addLecturesFail(errMsg));
-    }
-  }
-};
-
-// LIST STUDENTS
-export const listStudents = () => async (dispatch, getState) => {
-  try {
-    dispatch(getStudentsStart());
-
-     const {
-       user: { userInfo },
-     } = getState();
-
-     const config = {
-       headers: {
-         Authorization: `Bearer ${userInfo?.token?.access}`,
-         "Content-Type": "application/json",
-       },
-     };
 
     const { data } = await axios.get(`${BASE_URL}/users/students/`, config);
     dispatch(getStudentsSuccess(data));
@@ -160,23 +165,21 @@ export const listStudents = () => async (dispatch, getState) => {
   }
 };
 
-
 // List lecturers
 export const listLecturers = () => async (dispatch, getState) => {
   try {
     dispatch(actionStart());
 
-     const {
-       user: { userInfo },
-     } = getState();
+    const {
+      user: { userInfo },
+    } = getState();
 
-     const config = {
-       headers: {
-         Authorization: `Bearer ${userInfo?.token?.access}`,
-         "Content-Type": "application/json",
-       },
-     };
-
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json",
+      },
+    };
 
     const { data } = await axios.get(`${BASE_URL}/users/lecturers/`, config);
     dispatch(getLecturesSuccess(data));
@@ -215,7 +218,7 @@ export const deleteUser = (userId) => async (dispatch, getState) => {
       },
     };
 
-     await axios.delete(`${BASE_URL}/users/${userId}/delete/`, config);
+    await axios.delete(`${BASE_URL}/users/${userId}/delete/`, config);
     dispatch(deleteUserSuccess());
   } catch (err) {
     const errMsg =
@@ -252,7 +255,11 @@ export const updateUser = (userData) => async (dispatch, getState) => {
       },
     };
 
-     const {data} = await axios.patch(`${BASE_URL}/users/update/`, userData, config);
+    const { data } = await axios.patch(
+      `${BASE_URL}/users/update/`,
+      userData,
+      config
+    );
     dispatch(updateUserSuccess(data));
   } catch (err) {
     const errMsg =
@@ -274,45 +281,46 @@ export const updateUser = (userData) => async (dispatch, getState) => {
 };
 
 // Admin get lecturer details
-export const getLecturerDetails = (lecturerId) => async (dispatch, getState) => {
-  try {
-    dispatch(actionStart());
+export const getLecturerDetails =
+  (lecturerId) => async (dispatch, getState) => {
+    try {
+      dispatch(actionStart());
 
-    const {
-      user: { userInfo },
-    } = getState();
+      const {
+        user: { userInfo },
+      } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo?.token?.access}`,
-        "Content-Type": "application/json",
-      },
-    };
-    
-    const { data } = await axios.get(
-      `${BASE_URL}/users/lecturers/${lecturerId}/`,
-      config
-    );
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo?.token?.access}`,
+          "Content-Type": "application/json",
+        },
+      };
 
-    dispatch(getLecturerInfoSuccess(data));
-  } catch (err) {
-    const errMsg =
-      err?.data && err?.data?.length
-        ? err.data[0]?.message
-        : err?.data
-        ? err.data?.message || err.data?.detail
-        : err.statusText;
-    if (
-      errMsg === "Authentication credentials were not provided." ||
-      errMsg === "Given token not valid for any token type"
-    ) {
-      dispatch(logout());
-      dispatch(actionFail("Your session has expired"));
-    } else {
-      dispatch(actionFail(errMsg));
+      const { data } = await axios.get(
+        `${BASE_URL}/users/lecturers/${lecturerId}/`,
+        config
+      );
+
+      dispatch(getLecturerInfoSuccess(data));
+    } catch (err) {
+      const errMsg =
+        err?.data && err?.data?.length
+          ? err.data[0]?.message
+          : err?.data
+          ? err.data?.message || err.data?.detail
+          : err.statusText;
+      if (
+        errMsg === "Authentication credentials were not provided." ||
+        errMsg === "Given token not valid for any token type"
+      ) {
+        dispatch(logout());
+        dispatch(actionFail("Your session has expired"));
+      } else {
+        dispatch(actionFail(errMsg));
+      }
     }
-  }
-};
+  };
 
 // Admin Stats
 export const getAdminStats = () => async (dispatch, getState) => {
@@ -330,10 +338,7 @@ export const getAdminStats = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(
-      `${BASE_URL}/stats/`,
-      config
-    );
+    const { data } = await axios.get(`${BASE_URL}/stats/`, config);
 
     dispatch(getStatsSuccess(data));
   } catch (err) {
@@ -353,4 +358,73 @@ export const getAdminStats = () => async (dispatch, getState) => {
       dispatch(actionFail(errMsg));
     }
   }
-}
+};
+
+// Get user results
+export const getStudentResults = () => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `${BASE_URL}/courses/enrolled/results/`,
+      config
+    );
+    dispatch(getResultsSuccess(data));
+  } catch (err) {
+    const errMsg = err?.data
+      ? err.data?.message || err.data?.detail
+      : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    }
+    dispatch(actionFail(errMsg));
+  }
+};
+
+
+// Get students perfomance stats
+export const getStudentPerfomanceStats = () => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `${BASE_URL}/courses/results/stats/`,
+      config
+    );
+    dispatch(getStudentStatsSuccess(data));
+  } catch (err) {
+    const errMsg = err?.data
+      ? err.data?.message || err.data?.detail
+      : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    }
+    dispatch(actionFail(errMsg));
+  }
+};

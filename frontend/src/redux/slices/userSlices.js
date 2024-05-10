@@ -9,12 +9,15 @@ const initialState = {
   students: [],
   lecturers: [],
   myCourses: [],
+  myResults: {},
   enrolled: false,
   deleted: false,
   created: false,
   updated: false,
+  updateInfo: {},
   lecturerInfo: {},
   stats: {},
+  studentStats: {},
 };
 
 export const userSlice = createSlice({
@@ -42,7 +45,7 @@ export const userSlice = createSlice({
     },
     addStudentsSuccess: (state, action) => {
       state.loading = false;
-      state.students = action.payload;
+      state.updateInfo = action.payload;
     },
     addStudentsFail: (state, action) => {
       state.loading = false;
@@ -52,9 +55,10 @@ export const userSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    addLecturesSuccess: (state) => {
+    addLecturesSuccess: (state, action) => {
       state.loading = false;
       state.created = true;
+      state.updateInfo = action.payload;
     },
     addLecturesFail: (state, action) => {
       state.loading = false;
@@ -122,6 +126,8 @@ export const userSlice = createSlice({
       state.error = null;
       state.created = false;
       state.updated = false;
+      state.updateInfo = {};
+      state.enrolled = false;
     },
     getStatsSuccess: (state, action) => {
       state.loading = false;
@@ -133,9 +139,17 @@ export const userSlice = createSlice({
       state.userInfo = {...state.userInfo, contact};
       state.updated = true;
     },
+    getResultsSuccess: (state, action) => {
+      state.loading = false;
+      state.myResults = action.payload;
+    },
+    getStudentStatsSuccess: (state, action) => {
+      state.loading = false;
+      state.studentStats = action.payload;
+    },
   },
 });
 
-export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail, addLecturesStart, addLecturesSuccess, addLecturesFail, getLecturesSuccess, actionStart, actionFail, deleteUserSuccess, resetState, getLecturerInfoSuccess, updateUserSuccess, getStatsSuccess } = userSlice.actions;
+export const {userLoginStart, userLoginSuccess, userLoginFail, clearUserState, addStudentsStart, addStudentsSuccess, addStudentsFail, getStudentsStart, getStudentsSuccess, getStudentsFail, getMyCoursesStart, getMyCoursesSuccess, getMyCoursesFail, enrollCoursesStart, enrollCoursesSuccess, enrollCoursesFail, addLecturesStart, addLecturesSuccess, addLecturesFail, getLecturesSuccess, actionStart, actionFail, deleteUserSuccess, resetState, getLecturerInfoSuccess, updateUserSuccess, getStatsSuccess, getResultsSuccess, getStudentStatsSuccess } = userSlice.actions;
 
 export default userSlice.reducer;

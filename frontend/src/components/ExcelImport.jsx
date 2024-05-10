@@ -1,17 +1,28 @@
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import {useDispatch, useSelector} from "react-redux"
-import { deleteUser, importStudents, listStudents } from "../redux/actions/userActions";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  deleteUser,
+  importStudents,
+  listStudents,
+} from "../redux/actions/userActions";
 import { resetState } from "../redux/slices/userSlices";
-import CloseIcon from "@mui/icons-material/Close";
+import Message from "./Message";
 
 const ExcelImport = () => {
   const dispatch = useDispatch();
   const [students, setStudents] = useState([]);
   const [fileErr, setFileErr] = useState(null);
   const [showImportBtn, setShowImportBtn] = useState(false);
+  const [successImport, setSuccessImport] = useState(null);
 
-  const {loading, error, students: studentsList, deleted} = useSelector((state) => state.user);
+  const {
+    loading,
+    error,
+    students: studentsList,
+    deleted,
+    updateInfo,
+  } = useSelector((state) => state.user);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -32,7 +43,7 @@ const ExcelImport = () => {
         email: row[3],
         contact: row[4],
         year_joined: row[5],
-        user_type: "student"
+        user_type: "student",
       }));
 
       setStudents(students);
@@ -42,37 +53,51 @@ const ExcelImport = () => {
   };
 
   const uploadExcelFile = () => {
-    if (students.length === 0){
-      setFileErr("Please choose an excel file to upload!")
-    }else{
-      dispatch(importStudents);
+    if (students.length === 0) {
+      setFileErr("Please choose an excel file to upload!");
+    } else {
+      dispatch(importStudents(students));
     }
-  }
+  };
 
-    const handleDeleteUser = (userId) => {
-      alert("Are you sure you want to delete the user?");
-      dispatch(deleteUser(userId));
-    };
+  const handleDeleteUser = (userId) => {
+    alert("Are you sure you want to delete the user?");
+    dispatch(deleteUser(userId));
+  };
+
+  useEffect(() => {
+    if (updateInfo?.total_items) {
+      setSuccessImport(
+        `${updateInfo?.updates_count}/${updateInfo?.total_items} added successfully!`
+      );
+    }
+    const timeout = setTimeout(() => {
+      dispatch(resetState());
+      setSuccessImport(null);
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [dispatch, updateInfo]);
 
   useEffect(() => {
     dispatch(listStudents());
-  }, [dispatch])
+  }, [dispatch]);
 
-    useEffect(() => {
-      if (deleted) {
-        dispatch(listStudents());
-      }
-    }, [dispatch, deleted]);
+  useEffect(() => {
+    if (deleted || updateInfo?.total_items) {
+      dispatch(listStudents());
+    }
+  }, [dispatch, deleted, updateInfo]);
 
-    useEffect(() => {
-      if (deleted || error){
-        const timeout = setTimeout(() => {
-          dispatch(resetState());
-        }, 3000);
+  useEffect(() => {
+    if (deleted || error) {
+      const timeout = setTimeout(() => {
+        dispatch(resetState());
+      }, 5000);
 
-        return () => clearTimeout(timeout);
-      }
-    }, [dispatch, deleted, error])
+      return () => clearTimeout(timeout);
+    }
+  }, [dispatch, deleted, error]);
 
   return (
     <div className='w-full'>
@@ -81,13 +106,18 @@ const ExcelImport = () => {
         {!showImportBtn ? (
           <span className='flex gap-5 items-center border text-sm text-gray-600 p-2'>
             <span>
-              <h6 className="text-xl font-semibold text-gray-900">Import Students</h6>
+              <h6 className='text-xl font-semibold text-gray-900'>
+                Import Students
+              </h6>
               <p>
                 To Import students data, please click on Import, select an excel
                 file and upload data.
               </p>
             </span>
-            <button className='bg-gray-900 text-white px-4 py-2 rounded' onClick={() => setShowImportBtn(true)}>
+            <button
+              className='bg-gray-900 text-white px-4 py-2 rounded'
+              onClick={() => setShowImportBtn(true)}
+            >
               Import
             </button>
           </span>
@@ -95,6 +125,7 @@ const ExcelImport = () => {
           <div className='flex gap-3 border p-2 relative'>
             <input
               type='file'
+              accept='.xlsx, .ods'
               onChange={handleFileChange}
               className='border focus:outline-gray-900 px-4 py-1 rounded'
             />
@@ -104,27 +135,32 @@ const ExcelImport = () => {
             >
               Upload data
             </button>
-            <button className="bg-gray-200 h-6 w-6 text-gray-900 rounded-full flex justify-center items-center absolute top-0 close-import-btn" onClick={() => setShowImportBtn(false)}>x</button>
+            <button
+              className='bg-gray-200 h-6 w-6 text-gray-900 rounded-full flex justify-center items-center absolute top-0 close-import-btn'
+              onClick={() => setShowImportBtn(false)}
+            >
+              x
+            </button>
           </div>
         )}
       </div>
       <section className='w-full overflow-x-auto'>
         {loading && <p>Loading...</p>}
         {error && (
-          <p className='bg-red-500 p-4 rounded text-oranger-500'>{error}</p>
+          <Message onClose={() => dispatch(resetState())}>{error}</Message>
         )}
         {deleted && (
           <span className='flex items-center justify-between my-1 bg-green-100 w-full py-2 px-4 rounded border border-green-400 text-green-700'>
             <p>User has been deleted successfully!</p>
           </span>
         )}
+        {successImport && (
+          <Message variant='success' onClose={() => setSuccessImport(null)}>
+            {successImport}
+          </Message>
+        )}
         {fileErr && (
-          <span className='flex items-center justify-between my-1 bg-red-100 w-full py-2 px-4 rounded border border-red-400 text-red-700'>
-            <p>{fileErr}</p>
-            <button onClick={() => setFileErr(null)}>
-              <CloseIcon />
-            </button>
-          </span>
+          <Message onClose={() => setFileErr(null)}>{fileErr}</Message>
         )}
         <table className='w-max border border-gray-400'>
           <thead className=''>

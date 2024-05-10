@@ -1,59 +1,100 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import axios from "redaxios";
-import { BASE_URL } from "../URL";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Papa from "papaparse";
-
+import {
+  autoSaveMarks,
+  getClassList,
+  getMyCourses,
+  publishResults,
+} from "../redux/actions/courseActions";
+import Message from "../components/Message";
+import { resetState } from "../redux/slices/userSlices";
+import { getStudentResults } from "../redux/actions/userActions";
 
 const ResultPage = () => {
-  const { courses } = useSelector((state) => state.course);
-  const { semesters } = useSelector((state) => state.semester);
-  const {userInfo} = useSelector((state) => state.user);
-  const [classList, setClassList] = useState(null);
-
-  const [selectedSem, setSelectedSem] = useState("");
+  const dispatch = useDispatch();
+  const { myCourses } = useSelector((state) => state.user);
+  const { classList, saving, error, published, saved } = useSelector((state) => state.course);
+  const { userInfo, myResults } = useSelector((state) => state.user);
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [enrollments, setEnrollments] = useState([]);
 
-  const fetchClassList = async () => {
-    const obj = {
-      course_code: selectedCourse,
-      semester_id: selectedSem,
-    };
+  // Downloading class List
+  const fetchClassList = () => {
+    dispatch(getClassList({ course_code: selectedCourse }));
+  };
 
-    try {
-      const { data } = await axios.post(`${BASE_URL}/courses/students/`, obj);
-      setClassList(data);
-    } catch (err) {
-      console.log(err);
+  useEffect(() => {
+    if (classList?.course && published){
+      dispatch(getClassList({course_code: classList?.course}))
+    }
+  }, [dispatch, classList, published])
+
+  const getDataForDownload = () => {
+    const data = classList?.students.map((student, index) => ({
+      "S/NO": index + 1,
+      "REG NO": student.reg_no,
+      "FULL NAME": student.student_name,
+    }));
+    return data;
+  };
+
+  const handleDownload = () => {
+    const data = getDataForDownload();
+    const csvData = Papa.unparse(data, { header: true });
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "class_list.csv");
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
-  // Downloading class List
+  useEffect(() => {
+    dispatch(getMyCourses("lecturer"));
+  }, [dispatch]);
 
-    const getDataForDownload = () => {
-      const data = classList?.students.map((student, index) => ({
-        "S/NO": index + 1,
-        "REG NO": student.reg_no,
-        "FULL NAME": student.student_name,
-      }));
-      return data;
-    };
+  useEffect(() => {
+    if (classList?.students) {
+      setEnrollments(classList.students);
+    }
+  }, [classList]);
 
-    const handleDownload = () => {
-      const data = getDataForDownload();
-      const csvData = Papa.unparse(data, { header: true });
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "class_list.csv");
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    };
+  const handleEnrollmentsChange = (e, index) => {
+    const { name, value } = e.target;
+    setEnrollments((prevEnrollments) => {
+      const updatedEnrollments = [...prevEnrollments];
+      const updatedStudent = { ...updatedEnrollments[index], [name]: value };
+      updatedEnrollments[index] = updatedStudent;
+      return updatedEnrollments;
+    });
+  };
+
+  const handlePublishResults = () => {
+    dispatch(publishResults({ course_code: classList?.course }));
+  };
+
+  useEffect(() => {
+    const newTimeoutId = setTimeout(() => {
+      dispatch(autoSaveMarks({ enrollments }));
+    }, 5000);
+
+    // Cleanup function to clear the timeout on component unmount or when the timeout is reset
+    return () => clearTimeout(newTimeoutId);
+  }, [dispatch, enrollments]); // Trigger the effect whenever enrollments change
+
+  useEffect(() => {
+    if (userInfo?.user?.user_type === 'student'){
+      dispatch(getStudentResults());
+    }
+  }, [dispatch, userInfo])
+
+  console.log(myResults)
   return (
     <>
       {/* For the Lecturer */}
@@ -68,26 +109,10 @@ const ResultPage = () => {
                 onChange={(e) => setSelectedCourse(e.target.value)}
               >
                 <option value=''>--Select Course--</option>
-                {courses.map((course) => {
+                {myCourses.map((course) => {
                   return (
                     <option key={course.course_id} value={course.course_code}>
                       {course.course_code} - {course.course_name}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className='flex gap-3 items-center'>
-              <h6 className='text-gray-900'>Select Semester:</h6>
-              <select
-                className='border focus:outline-none p-2'
-                onChange={(e) => setSelectedSem(e.target.value)}
-              >
-                <option value=''>--Select Semester--</option>
-                {semesters.map((semester) => {
-                  return (
-                    <option key={semester.id} value={semester.id}>
-                      {semester.id}
                     </option>
                   );
                 })}
@@ -101,25 +126,50 @@ const ResultPage = () => {
             </button>
           </div>
           {classList && (
-            <div className='flex justify-between items-end my-3'>
+            <div className='flex md:justify-end gap-3 items-end my-3'>
               <h3 className='text-xl uppercase text-gray-600'>
                 {classList?.course}
               </h3>
-              <h3 className='text-xl uppercase text-gray-600'>
-                {classList?.semester}
-              </h3>
-              {classList?.students.length > 0 && (
+              {classList?.students?.length > 0 && (
                 <button
-                  className='bg-green-500 px-4 py-1 text-white rounded'
+                  className='bg-green-500 px-4 py-1 text-white'
                   onClick={handleDownload}
                 >
                   Download Class List
                 </button>
               )}
+              {((classList && !classList?.published) || saved) && (
+                <button
+                  type='button'
+                  className='bg-green-600 px-4 py-1 text-white'
+                  onClick={handlePublishResults}
+                >
+                  Publish Results
+                </button>
+              )}
             </div>
           )}
-          <section className='w-full bg-white overflow-x-auto p-4'>
-            <table className='w-full text-gray-600 border border-collapse border-gray-300'>
+          <section className='w-full overflow-x-auto bg-white overflow-x-auto p-4'>
+            <p
+              className={`text-green-600 text-xs ${
+                saving ? "visible" : "invisible"
+              }`}
+            >
+              Saving...
+            </p>
+            <p
+              className={`text-red-600 text-xs ${
+                error ? "visible" : "invisible"
+              }`}
+            >
+              Changes not saved! check your internet...
+            </p>
+            {published && (
+              <Message variant='success' onClose={() => dispatch(resetState())}>
+                Results published!
+              </Message>
+            )}
+            <table className='w-max text-gray-600 border border-collapse border-gray-300'>
               <thead>
                 <tr>
                   <th className='border border-gray-300 p-2 text-left'>S/NO</th>
@@ -144,28 +194,34 @@ const ResultPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {classList?.students.map((student) => {
+                {enrollments.map((student, index) => {
                   return (
                     <tr key={student.student_id}>
-                      <td className='border border-gray-300 px-2'>1</td>
+                      <td className='border border-gray-300 px-2'>
+                        {index + 1}
+                      </td>
                       <td className='border border-gray-300 px-2'>
                         {student.reg_no}
                       </td>
                       <td className='border border-gray-300 px-2 uppercase'>
                         {student.student_name}
                       </td>
-                      <td className='border border-gray-300'>
+                      <td className='border border-gray-300 py-1 px-2'>
                         <input
                           type='number'
-                          className='w-full px-2 focus:outline-none text-gray-600'
+                          className='border px-2 focus:outline-none text-gray-600'
                           value={student.coursework_marks}
+                          name='coursework_marks'
+                          onChange={(e) => handleEnrollmentsChange(e, index)}
                         />
                       </td>
-                      <td className='border border-gray-300'>
+                      <td className='border border-gray-300 py-1 px-2'>
                         <input
                           type='number'
-                          className='w-full px-2 focus:outline-none text-gray-600'
+                          className='border px-2 focus:outline-none text-gray-600'
                           value={student.exam_marks}
+                          name='exam_marks'
+                          onChange={(e) => handleEnrollmentsChange(e, index)}
                         />
                       </td>
                       <td className='border border-gray-300 px-2 uppercase'>
@@ -181,7 +237,7 @@ const ResultPage = () => {
                     </tr>
                   );
                 })}
-                {classList?.students.length === 0 && (
+                {classList?.students?.length === 0 && (
                   <tr className='p-2'>
                     <td className='text-orange-600'>
                       No Enrolled students in this course!
@@ -198,7 +254,7 @@ const ResultPage = () => {
       {userInfo?.user?.user_type === "student" && (
         <section className='bg-slate-100 shadow-sm p-4'>
           <div className='flex flex-col items-center bg-white p-4'>
-            <h3 className='text-gray-600 uppercase'>WAMAE JOSEPH NDIRITU</h3>
+            <h3 className='text-gray-600 uppercase'>{userInfo?.user?.full_name}</h3>
             <h6 className='text-gray-600 uppercase'>FACULTY OF EDUCATION</h6>
             <h6 className='text-gray-600 uppercase'>
               Bachelor of Education (ICT)
@@ -218,48 +274,39 @@ const ResultPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td className='border border-gray-300 p-2'>1</td>
-                  <td className='border border-gray-300 p-2'>ICS 113</td>
-                  <td className='border border-gray-300 p-2'>
-                    Introduction to Programming
-                  </td>
-                  <td className='border border-gray-300 p-2'>A</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>2</td>
-                  <td className='border border-gray-300 p-2'>ICS 230</td>
-                  <td className='border border-gray-300 p-2'>
-                    Operating Systems
-                  </td>
-                  <td className='border border-gray-300 p-2'>A</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>3</td>
-                  <td className='border border-gray-300 p-2'>ICS 116</td>
-                  <td className='border border-gray-300 p-2'>
-                    Introduction to Database
-                  </td>
-                  <td className='border border-gray-300 p-2'>A</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>4</td>
-                  <td className='border border-gray-300 p-2'>ICS 217</td>
-                  <td className='border border-gray-300 p-2'>
-                    Digital Electronics
-                  </td>
-                  <td className='border border-gray-300 p-2'>B</td>
-                </tr>
-                <tr>
-                  <td className='border border-gray-300 p-2'>5</td>
-                  <td className='border border-gray-300 p-2'>ICS 115</td>
-                  <td className='border border-gray-300 p-2'>
-                    Discrete Mathematics
-                  </td>
-                  <td className='border border-gray-300 p-2'>B</td>
-                </tr>
-              </tbody>
+                {Object.entries(myResults).map(
+                  ([semesterId, courses]) => ({
+                    id: semesterId,
+                    courses: Object.values(courses),
+                  })
+                ).map((item) => {
+                  console.log(item);
+                  return (
+                    <tbody key={item.id}>
+                      <tr className='border border-gray-300 '>
+                        <td className='p-2'>{item.id}</td>
+                      </tr>
+                      {
+                        item.courses.map((course, index) => {
+                          return (
+                            <tr key={course.enrollment_id}>
+                              <td className='border border-gray-300 p-2'>{index + 1}</td>
+                              <td className='border border-gray-300 p-2'>
+                                {course.course_code}
+                              </td>
+                              <td className='border border-gray-300 p-2'>
+                                {course.course_name}
+                              </td>
+                              <td className='border border-gray-300 p-2'>
+                                {course.grade}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      }
+                    </tbody>
+                  );
+                })}
             </table>
           </div>
         </section>

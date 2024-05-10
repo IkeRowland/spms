@@ -6,18 +6,26 @@ import PsychologyIcon from "@mui/icons-material/Psychology";
 import CastForEducationIcon from "@mui/icons-material/CastForEducation";
 import {useDispatch, useSelector} from "react-redux";
 import { getSemesters } from "../redux/actions/semesterActions";
-import { getAdminStats } from "../redux/actions/userActions";
+import { getAdminStats, getStudentPerfomanceStats } from "../redux/actions/userActions";
 
 const HomePage = () => {
   const dispatch = useDispatch();
 
-  const {userInfo, stats} = useSelector((state) => state.user);
+  const {userInfo, stats, studentStats} = useSelector((state) => state.user);
   const current_year = new Date().getFullYear()
 
   useEffect(() => {
     dispatch(getSemesters());
     dispatch(getAdminStats());
   }, [dispatch])
+
+  useEffect(() => {
+    if (userInfo?.user?.user_type === 'student'){
+      dispatch(getStudentPerfomanceStats())
+    }
+  }, [dispatch, userInfo])
+
+  console.log(studentStats);
   return (
     <>
       {userInfo?.user?.user_type === "student" && (
@@ -89,33 +97,43 @@ const HomePage = () => {
                     <tbody>
                       <tr>
                         <td className='border border-gray-300 p-2'>
-                          8{" "}
+                          {studentStats?.grade_counts?.A}
                           <span className='bg-green-500 p-1 text-sm rounded-sm text-white'>
-                            High
+                            {studentStats?.analysis?.A === "Negative"
+                              ? "Low"
+                              : "High"}
                           </span>
                         </td>
                         <td className='border border-gray-300 p-2'>
-                          10{" "}
+                          {studentStats?.grade_counts?.B}
                           <span className='bg-green-500 p-1 text-sm rounded-sm text-white'>
-                            High
+                            {studentStats?.analysis?.B === "Negative"
+                              ? "Low"
+                              : "High"}
                           </span>
                         </td>
                         <td className='border border-gray-300 p-2'>
-                          4{" "}
-                          <span className='bg-green-500 p-1 text-sm rounded-sm text-white'>
-                            Low
+                          {studentStats?.grade_counts?.C}
+                          <span className='bg-amber-300 p-1 text-sm rounded-sm text-white'>
+                            {studentStats?.analysis?.C === "Negative"
+                              ? "Low"
+                              : "High"}
                           </span>
                         </td>
                         <td className='border border-gray-300 p-2'>
-                          2{" "}
-                          <span className='bg-green-500 p-1 text-sm rounded-sm text-white'>
-                            Low
-                          </span>
-                        </td>
-                        <td className='border border-gray-300 p-2'>
-                          5{" "}
+                          {studentStats?.grade_counts?.D}
                           <span className='bg-red-500 p-1 text-sm rounded-sm text-white'>
-                            High
+                            {studentStats?.analysis?.D === "Negative"
+                              ? "Low"
+                              : "High"}
+                          </span>
+                        </td>
+                        <td className='border border-gray-300 p-2'>
+                          {studentStats?.grade_counts?.E}
+                          <span className='bg-red-500 p-1 text-sm rounded-sm text-white'>
+                            {studentStats?.analysis?.E === "Negative"
+                              ? "Low"
+                              : "High"}
                           </span>
                         </td>
                       </tr>

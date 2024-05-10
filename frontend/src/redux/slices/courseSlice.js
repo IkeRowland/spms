@@ -2,12 +2,16 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   loading: false,
+  saving: false,
   error: null,
   course_created: false,
   courses: [],
+  classList: {},
   userCourses: [],
   assigned: false,
   courseDelete: false,
+  published: false,
+  saved: false,
 };
 
 export const courseSlice = createSlice({
@@ -58,24 +62,47 @@ export const courseSlice = createSlice({
       state.error = false;
       state.success = false;
       state.assigned = false;
+      state.published = false;
     },
     actionFail: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+    getClassListSuccess: (state, action) => {
+      state.loading = false;
+      state.classList = action.payload;
     },
     assignLecturerCourseSuccess: (state) => {
       state.loading = false;
       state.assigned = true;
     },
     getLecturerCoursesSuccess: (state, action) => {
-        state.loading = false;
-        state.userCourses = action.payload;
+      state.loading = false;
+      state.userCourses = action.payload;
+    },
+    publishResultSuccess: (state) => {
+      state.loading = false;
+      state.published = true;
+      state.saved = false;
+    },
+    savingStart: (state) => {
+      state.saving = true;
+    },
+    savingSuccess: (state) => {
+      state.saving = false;
+      state.saved = true;
+    },
+    savingFail: (state, action) => {
+      state.saving = false;
+      state.error = action.payload;
     },
     resetCourseState: (state) => {
       state.assigned = false;
       state.course_created = false;
       state.error = null;
       state.courseDelete = false;
+      state.enrolled = false;
+      state.published = false;
     },
   },
 });
@@ -94,7 +121,12 @@ export const {
   actionFail,
   assignLecturerCourseSuccess,
   getLecturerCoursesSuccess,
-  resetCourseState
+  resetCourseState,
+  getClassListSuccess,
+  savingStart,
+  savingSuccess,
+  savingFail,
+  publishResultSuccess
 } = courseSlice.actions;
 
 export default courseSlice.reducer;

@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { validateObject } from "../helpers";
 import Message from "../components/Message";
 import { resetCourseState } from "../redux/slices/courseSlice";
+import { resetState } from "../redux/slices/userSlices";
 
 const CoursePage = () => {
   const dispatch = useDispatch();
@@ -20,10 +21,9 @@ const CoursePage = () => {
   const { semesters } = useSelector((state) => state.semester);
   const {
     userInfo,
-    myCourses,
-    loading: loadingUser,
-    error: errorUser,
     enrolled,
+    error: userError,
+    loading: userLoading,
   } = useSelector((state) => state.user);
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
@@ -66,8 +66,8 @@ const CoursePage = () => {
 
   const handleCreateCourse = (e) => {
     e.preventDefault();
-    const emptyKey = validateObject({courseCode, courseName, year, sem})
-    if (emptyKey){
+    const emptyKey = validateObject({ courseCode, courseName, year, sem });
+    if (emptyKey) {
       setCreateCourseFormErr(`${emptyKey} is required!`);
       return;
     }
@@ -91,15 +91,8 @@ const CoursePage = () => {
   }, [course_created, error]);
 
   useEffect(() => {
-    dispatch(getCourses());
-  }, [dispatch]);
-
-  useEffect(() => {
-    dispatch(getMyCourses());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (errorUser) {
+    if (enrolled || userError) {
+      setSemester("")
       setEnrollCourseData(
         Array.from({ length: 5 }, () => ({
           course_code: "",
@@ -108,85 +101,51 @@ const CoursePage = () => {
         }))
       );
     }
-  }, [errorUser]);
+  }, [enrolled, userError]);
 
   useEffect(() => {
-    if (enrolled) {
-      dispatch(getMyCourses());
-    }
-  }, [dispatch, enrolled]);
+    dispatch(getCourses());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(getMyCourses());
+  }, [dispatch]);
 
   return (
-    <section
-      className={`bg-gray-300 p-4 ${
-        userInfo?.user?.user_type === "admin"
-          ? "w-max grid-cols-1"
-          : "w-full grid md:grid-cols-5"
-      } `}
-    >
-      {userInfo?.user?.user_type !== "admin" && (
-        <div className='col-span-3 pr-2'>
-          <div className='bg-white p-2'>
-            {loadingUser && <p>Loading....</p>}
-            {errorUser && (
-              <p className='bg-red-500 p-4 rounded text-oranger-500'>
-                {errorUser}
-              </p>
-            )}
-            <h4 className='text-center font-md-bold'>2024/2</h4>
-            <table className='w-full border'>
-              <thead className=''>
-                <tr className='text-left'>
-                  <th className='border border-gray-300 p-2'>ID</th>
-                  <th className='border border-gray-300 p-2'>Course Code</th>
-                  <th className='border border-gray=300 p-2'>Course Name</th>
-                  <th className='border border-gray-300 p-2'>Exam Type</th>
-                </tr>
-              </thead>
-              <tbody className=''>
-                {myCourses.map((course, index) => {
-                  const { enrollment_id, course_code, course_name, exam_type } =
-                    course;
+    <section className={`bg-gray-300 p-4 w-full`}>
+      {userInfo?.user?.user_type === "student" && (
+        <form className='col-span-1 bg-white p-4 h-max flex flex-col items-center justify-center'>
+          {loading || userLoading && <p>Loading...</p>}
+          {error && (
+            <Message onClose={() => dispatch(resetCourseState())}>
+              {error}
+            </Message>
+          )}
+          {
+            userError && <Message onClose={() => dispatch(resetState())}>{userError}</Message>
+          }
+          {
+            enrolled && <Message variant="success" onClose={() => dispatch(resetState())}>Course registered successfully!</Message>
+          }
+          <div className='w-full flex items-center justify-between'>
+            <h2 className='text-xl font-bold p-2'> Register Course</h2>
+            <div className='flex gap-5 items-center'>
+              <h6>Select Semester</h6>
+              <select
+                className='border border-gray-300 p-2 outline-none my-2'
+                onChange={(e) => setSemester(e.target.value)}
+                value={semester}
+              >
+                <option>--Select Semester--</option>
+                {semesters.map((semester) => {
                   return (
-                    <tr key={enrollment_id}>
-                      <td className='border border-gray-300 p-2'>
-                        {index + 1}
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        {course_code}
-                      </td>
-                      <td className='border border-gray-300 p-2'>
-                        {course_name}
-                      </td>
-                      <td className='border border-gray-300 p-2 capitalize'>
-                        {exam_type}
-                      </td>
-                    </tr>
+                    <option key={semester.id} value={semester.id}>
+                      {semester.id}
+                    </option>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      {userInfo?.user?.user_type === "student" && (
-        <form className='col-span-2 bg-white p-4 h-max flex flex-col items-center justify-center'>
-          <h2 className='text-xl font-bold p-2'> Register Course</h2>
-          <div className='w-full flex items-center justify-between'>
-            <h6>Select Semester</h6>
-            <select
-              className='border border-gray-300 p-2 outline-none my-2'
-              onChange={(e) => setSemester(e.target.value)}
-            >
-              <option>--Select Semester--</option>
-              {semesters.map((semester) => {
-                return (
-                  <option key={semester.id} value={semester.id}>
-                    {semester.id}
-                  </option>
-                );
-              })}
-            </select>
+              </select>
+            </div>
           </div>
           <table className='w-full'>
             <thead>
@@ -201,8 +160,8 @@ const CoursePage = () => {
                   <tr key={index}>
                     <td className='outline-none border border-gray-300 p-2'>
                       <input
-                        placeholder='ICS 215'
-                        className='w-28 outline-none'
+                        placeholder='Course Code'
+                        className='w-full px-2 py-1 border outline-none'
                         value={courseInput.course_code}
                         onChange={(e) =>
                           handleCourseEnrollInputChange(
@@ -215,7 +174,7 @@ const CoursePage = () => {
                     </td>
                     <td className='border border-gray-300 p-2'>
                       <select
-                        className='outline-none'
+                        className='w-full px-2 py-1 border outline-none'
                         onChange={(e) =>
                           handleCourseEnrollInputChange(
                             index,
@@ -233,14 +192,22 @@ const CoursePage = () => {
               })}
             </tbody>
           </table>
-          <div className='flex justify-center'>
+          <div className='w-full flex gap-5'>
             <button
-              className='bg-gray-900 text-white hover:cusor-pointer 
+            type="button"
+              className='md:w-1/3 bg-gray-900 text-white hover:cusor-pointer 
            my-3 p-2 rounded '
               onClick={handleEnrollCourseSubmit}
             >
               Regester Courses
             </button>
+            <Link
+              to='/courses'
+              className='md:w-1/3 bg-green-600 text-white hover:cusor-pointer 
+           my-3 p-2 rounded '
+            >
+              View My Courses
+            </Link>
           </div>
         </form>
       )}
@@ -249,14 +216,23 @@ const CoursePage = () => {
           <h2 className='text-xl font-bold p-2'>Create Course</h2>
           {loading && <p>Loading....</p>}
           {error && (
-            <Message onClose={() => dispatch(resetCourseState())}>{error}</Message>
+            <Message onClose={() => dispatch(resetCourseState())}>
+              {error}
+            </Message>
           )}
-          {
-            createCourseFormErr && <Message onClose={() => setCreateCourseFormErr(null)}>{createCourseFormErr}</Message>
-          }
-          {
-            course_created && <Message variant="success" onClose={() => dispatch(resetCourseState())}>Course created successfull!</Message>
-          }
+          {createCourseFormErr && (
+            <Message onClose={() => setCreateCourseFormErr(null)}>
+              {createCourseFormErr}
+            </Message>
+          )}
+          {course_created && (
+            <Message
+              variant='success'
+              onClose={() => dispatch(resetCourseState())}
+            >
+              Course created successfull!
+            </Message>
+          )}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
             <div className='col-span-1'>
               <div className='w-full mb-2 flex gap-3 items-center'>
@@ -289,6 +265,7 @@ const CoursePage = () => {
                 />
               </div>
               <button
+              type="button"
                 className='w-full bg-gray-900 text-white hover:cusor-pointer 
            my-3 p-2 rounded '
                 onClick={handleCreateCourse}

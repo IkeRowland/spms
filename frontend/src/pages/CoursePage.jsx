@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { validateObject } from "../helpers";
 import Message from "../components/Message";
 import { resetCourseState } from "../redux/slices/courseSlice";
+import { resetState } from "../redux/slices/userSlices";
 
 const CoursePage = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,8 @@ const CoursePage = () => {
   const {
     userInfo,
     enrolled,
+    error: userError,
+    loading: userLoading,
   } = useSelector((state) => state.user);
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
@@ -88,7 +91,8 @@ const CoursePage = () => {
   }, [course_created, error]);
 
   useEffect(() => {
-    if (enrolled){
+    if (enrolled || userError) {
+      setSemester("")
       setEnrollCourseData(
         Array.from({ length: 5 }, () => ({
           course_code: "",
@@ -97,7 +101,7 @@ const CoursePage = () => {
         }))
       );
     }
-  }, [enrolled])
+  }, [enrolled, userError]);
 
   useEffect(() => {
     dispatch(getCourses());
@@ -111,14 +115,17 @@ const CoursePage = () => {
     <section className={`bg-gray-300 p-4 w-full`}>
       {userInfo?.user?.user_type === "student" && (
         <form className='col-span-1 bg-white p-4 h-max flex flex-col items-center justify-center'>
-          {loading && <p>Loading...</p>}
+          {loading || userLoading && <p>Loading...</p>}
           {error && (
             <Message onClose={() => dispatch(resetCourseState())}>
               {error}
             </Message>
           )}
           {
-            enrolled && <Message variant="success" onClose={() => dispatch(resetCourseState())}>Course registered successfully!</Message>
+            userError && <Message onClose={() => dispatch(resetState())}>{userError}</Message>
+          }
+          {
+            enrolled && <Message variant="success" onClose={() => dispatch(resetState())}>Course registered successfully!</Message>
           }
           <div className='w-full flex items-center justify-between'>
             <h2 className='text-xl font-bold p-2'> Register Course</h2>
@@ -187,6 +194,7 @@ const CoursePage = () => {
           </table>
           <div className='w-full flex gap-5'>
             <button
+            type="button"
               className='md:w-1/3 bg-gray-900 text-white hover:cusor-pointer 
            my-3 p-2 rounded '
               onClick={handleEnrollCourseSubmit}
@@ -257,6 +265,7 @@ const CoursePage = () => {
                 />
               </div>
               <button
+              type="button"
                 className='w-full bg-gray-900 text-white hover:cusor-pointer 
            my-3 p-2 rounded '
                 onClick={handleCreateCourse}

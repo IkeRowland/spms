@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   loading: false,
+  saving: false,
   error: null,
   course_created: false,
   courses: [],
@@ -9,6 +10,7 @@ const initialState = {
   userCourses: [],
   assigned: false,
   courseDelete: false,
+  published: false,
 };
 
 export const courseSlice = createSlice({
@@ -59,6 +61,7 @@ export const courseSlice = createSlice({
       state.error = false;
       state.success = false;
       state.assigned = false;
+      state.published = false;
     },
     actionFail: (state, action) => {
       state.loading = false;
@@ -73,8 +76,22 @@ export const courseSlice = createSlice({
       state.assigned = true;
     },
     getLecturerCoursesSuccess: (state, action) => {
-        state.loading = false;
-        state.userCourses = action.payload;
+      state.loading = false;
+      state.userCourses = action.payload;
+    },
+    publishResultSuccess: (state) => {
+      state.loading = false;
+      state.published = true;
+    },
+    savingStart: (state) => {
+      state.saving = true;
+    },
+    savingSuccess: (state) => {
+      state.saving = false;
+    },
+    savingFail: (state, action) => {
+      state.saving = false;
+      state.error = action.payload;
     },
     resetCourseState: (state) => {
       state.assigned = false;
@@ -82,6 +99,7 @@ export const courseSlice = createSlice({
       state.error = null;
       state.courseDelete = false;
       state.enrolled = false;
+      state.published = false;
     },
   },
 });
@@ -101,7 +119,11 @@ export const {
   assignLecturerCourseSuccess,
   getLecturerCoursesSuccess,
   resetCourseState,
-  getClassListSuccess
+  getClassListSuccess,
+  savingStart,
+  savingSuccess,
+  savingFail,
+  publishResultSuccess
 } = courseSlice.actions;
 
 export default courseSlice.reducer;

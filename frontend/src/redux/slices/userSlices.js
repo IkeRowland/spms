@@ -125,6 +125,7 @@ export const userSlice = createSlice({
       state.created = false;
       state.updated = false;
       state.updateInfo = {};
+      state.enrolled = false;
     },
     getStatsSuccess: (state, action) => {
       state.loading = false;

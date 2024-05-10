@@ -1,19 +1,31 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Papa from "papaparse";
-import { getClassList, getMyCourses } from "../redux/actions/courseActions";
+import {
+  autoSaveMarks,
+  getClassList,
+  getMyCourses,
+  publishResults,
+} from "../redux/actions/courseActions";
 
 const ResultPage = () => {
   const dispatch = useDispatch();
-  const {myCourses} = useSelector((state) => state.user);
-  const {classList} = useSelector((state) => state.course);
+  const { myCourses } = useSelector((state) => state.user);
+  const { classList, saving, error, published } = useSelector((state) => state.course);
   const { userInfo } = useSelector((state) => state.user);
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [enrollments, setEnrollments] = useState([]);
 
   // Downloading class List
   const fetchClassList = () => {
     dispatch(getClassList({ course_code: selectedCourse }));
-  }
+  };
+
+  useEffect(() => {
+    if (classList?.course && published){
+      dispatch(getClassList({course_code: classList?.course}))
+    }
+  }, [dispatch, classList, published])
 
   const getDataForDownload = () => {
     const data = classList?.students.map((student, index) => ({
@@ -43,6 +55,35 @@ const ResultPage = () => {
   useEffect(() => {
     dispatch(getMyCourses("lecturer"));
   }, [dispatch]);
+
+  useEffect(() => {
+    if (classList?.students) {
+      setEnrollments(classList.students);
+    }
+  }, [classList]);
+
+  const handleEnrollmentsChange = (e, index) => {
+    const { name, value } = e.target;
+    setEnrollments((prevEnrollments) => {
+      const updatedEnrollments = [...prevEnrollments];
+      const updatedStudent = { ...updatedEnrollments[index], [name]: value };
+      updatedEnrollments[index] = updatedStudent;
+      return updatedEnrollments;
+    });
+  };
+
+  const handlePublishResults = () => {
+    dispatch(publishResults({ course_code: classList?.course }));
+  };
+
+  useEffect(() => {
+    const newTimeoutId = setTimeout(() => {
+      dispatch(autoSaveMarks({ enrollments }));
+    }, 5000);
+
+    // Cleanup function to clear the timeout on component unmount or when the timeout is reset
+    return () => clearTimeout(newTimeoutId);
+  }, [dispatch, enrollments]); // Trigger the effect whenever enrollments change
   return (
     <>
       {/* For the Lecturer */}
@@ -74,21 +115,44 @@ const ResultPage = () => {
             </button>
           </div>
           {classList && (
-            <div className='flex gap-5 items-end my-3'>
+            <div className='flex md:justify-end gap-3 items-end my-3'>
               <h3 className='text-xl uppercase text-gray-600'>
                 {classList?.course}
               </h3>
               {classList?.students?.length > 0 && (
                 <button
-                  className='bg-green-500 px-4 py-1 text-white rounded'
+                  className='bg-green-500 px-4 py-1 text-white'
                   onClick={handleDownload}
                 >
                   Download Class List
                 </button>
               )}
+              {!classList?.published && (
+                <button
+                  type='button'
+                  className='bg-green-600 px-4 py-1 text-white'
+                  onClick={handlePublishResults}
+                >
+                  Publish Results
+                </button>
+              )}
             </div>
           )}
           <section className='w-full overflow-x-auto bg-white overflow-x-auto p-4'>
+            <p
+              className={`text-green-600 text-xs ${
+                saving ? "visible" : "invisible"
+              }`}
+            >
+              Saving...
+            </p>
+            <p
+              className={`text-red-600 text-xs ${
+                error ? "visible" : "invisible"
+              }`}
+            >
+              Changes not saved! check your internet...
+            </p>
             <table className='w-max text-gray-600 border border-collapse border-gray-300'>
               <thead>
                 <tr>
@@ -114,10 +178,12 @@ const ResultPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {classList?.students?.map((student, index) => {
+                {enrollments.map((student, index) => {
                   return (
                     <tr key={student.student_id}>
-                      <td className='border border-gray-300 px-2'>{index + 1}</td>
+                      <td className='border border-gray-300 px-2'>
+                        {index + 1}
+                      </td>
                       <td className='border border-gray-300 px-2'>
                         {student.reg_no}
                       </td>
@@ -129,6 +195,8 @@ const ResultPage = () => {
                           type='number'
                           className='border px-2 focus:outline-none text-gray-600'
                           value={student.coursework_marks}
+                          name='coursework_marks'
+                          onChange={(e) => handleEnrollmentsChange(e, index)}
                         />
                       </td>
                       <td className='border border-gray-300 py-1 px-2'>
@@ -136,6 +204,8 @@ const ResultPage = () => {
                           type='number'
                           className='border px-2 focus:outline-none text-gray-600'
                           value={student.exam_marks}
+                          name='exam_marks'
+                          onChange={(e) => handleEnrollmentsChange(e, index)}
                         />
                       </td>
                       <td className='border border-gray-300 px-2 uppercase'>

@@ -14,6 +14,10 @@ import {
   getCoursesStart,
   getCoursesSuccess,
   getLecturerCoursesSuccess,
+  publishResultSuccess,
+  savingFail,
+  savingStart,
+  savingSuccess,
 } from "../slices/courseSlice";
 import axios from "redaxios";
 import {
@@ -162,6 +166,7 @@ export const enrollCourses = (courseData) => async (dispatch, getState) => {
     await axios.post(`${BASE_URL}/courses/enroll/`, courseData, config);
     dispatch(enrollCoursesSuccess());
   } catch (err) {
+    console.log(err)
     const errMsg =
       err?.data && err?.data?.length
         ? err.data[0]?.message
@@ -307,9 +312,76 @@ export const getClassList = (obj) =>  async (dispatch, getState) => {
       },
     };
     const { data } = await axios.post(`${BASE_URL}/courses/students/`, obj, config);
-    console.log(data)
     dispatch(getClassListSuccess(data));
   } catch (err) {
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(actionFail(errMsg));
+    }
+  }
+};
+
+// Save updated marks
+export const autoSaveMarks = (marks) => async (dispatch, getState) => {
+  try {
+    dispatch(savingStart());
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+      },
+    };
+    await axios.patch(`${BASE_URL}/courses/results/upload/`, marks, config);
+    dispatch(savingSuccess());
+  } catch (err) {
+    const errMsg =
+      err?.data && err?.data?.length
+        ? err.data[0]?.message
+        : err?.data
+        ? err.data?.message || err.data?.detail
+        : err.statusText;
+    if (
+      errMsg === "Authentication credentials were not provided." ||
+      errMsg === "Given token not valid for any token type"
+    ) {
+      dispatch(logout());
+    } else {
+      dispatch(savingFail(errMsg));
+    }
+  }
+};
+
+// Publish results
+export const publishResults = (courseData) => async (dispatch, getState) => {
+  try {
+    dispatch(actionStart());
+    const {
+      user: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token?.access}`,
+        "Content-Type": "application/json"
+      },
+    };
+    await axios.patch(`${BASE_URL}/courses/results/publish/`, courseData, config);
+    dispatch(publishResultSuccess());
+  } catch (err) {
+    console.log(err)
     const errMsg =
       err?.data && err?.data?.length
         ? err.data[0]?.message

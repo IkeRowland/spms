@@ -353,12 +353,13 @@ def get_course_students(request):
     # Retrieve enrollments for the specified course and semester
     enrollments = Enrollment.objects.filter(
         course_code__course_code=course_code, semester__id=teaching.semester.id)
+    is_published = ResultPermission.objects.get(course__course_code=course_code).marks_published
 
 
     # Extract student details from enrollments
-    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks': enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks': enrollment.coursework_marks,'exam_marks': enrollment.exam_marks, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
-    return Response({'course': course_code, 'students': students}, status=status.HTTP_200_OK)
+    return Response({'course': course_code, 'students': students, 'published': is_published}, status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -397,9 +398,14 @@ def publish_results(request):
     Compute grades and publish results for enrollments
     """
     if request.method == 'PATCH':
+        user = request.user
         course_code = request.data.get('course_code')
-        semester_id = request.data.get('semester_id')
-        enrollments = Enrollment.objects.filter(course_code__course_code=course_code, semester_id=semester_id)
+        teaching = Teaching.objects.filter(
+            lecturer__user__id=user.id, course__course_code=course_code)[0]
+
+        # Retrieve enrollments for the specified course and semester
+        enrollments = Enrollment.objects.filter(
+            course_code__course_code=course_code, semester__id=teaching.semester.id)
 
         for enrollment in enrollments:
             if enrollment.coursework_marks and enrollment.exam_marks:

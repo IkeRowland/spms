@@ -24,10 +24,12 @@ const CourseListPage = () => {
   }, [dispatch, courseDelete]);
 
   useEffect(() => {
-    dispatch(getMyCourses("lecturer"));
-  }, [dispatch]);
-
-  console.log(courses)
+    if (userInfo?.user?.user_type === 'lecturer'){
+      dispatch(getMyCourses("lecturer"));
+    } else if (userInfo?.user?.user_type === 'student'){
+      dispatch(getMyCourses("student"));
+    }
+  }, [dispatch, userInfo]);
 
   useEffect(() => {
     function formatCourses(courses) {
@@ -50,22 +52,32 @@ const CourseListPage = () => {
         }
 
         // Push the current course to the array at formattedCourses[level][semester_number]
-        formattedCourses[`year_${level}`][`sem_${semester_number}`].push(course);
+        formattedCourses[`year_${level}`][`sem_${semester_number}`].push(
+          course
+        );
       });
 
       return formattedCourses;
     }
 
-    const f_courses = formatCourses(courses);
+    let f_courses = formatCourses(courses);
     setFormattedCourses(f_courses);
-  }, [courses])
-
-  console.log(formattedCourses)
+  }, [courses]);
 
   return (
-    <section className="w-max p-4 border">
+    <section className='overflow-x-auto p-4 border'>
       {userInfo?.user?.user_type !== "admin" ? (
-        <h2 className='text-2xl font-semibold '>My Courses</h2>
+        <section className='my-3 flex justify-between'>
+          <h2 className='text-2xl font-semibold '>My Courses</h2>
+          {userInfo?.user?.user_type === 'student' && (
+            <Link
+              to='/courses/new'
+              className='bg-green-600 px-2 py-1 text-white'
+            >
+              Register Courses
+            </Link>
+          )}
+        </section>
       ) : (
         <div className='flex justify-between items-center my-2'>
           {" "}
@@ -79,12 +91,15 @@ const CourseListPage = () => {
         </div>
       )}
       {userInfo?.user?.user_type !== "admin" ? (
-        <table className='w-full border'>
+        <table className='w-max md:w-full border'>
           <thead className=''>
             <tr className='text-left'>
               <th className='border border-gray-300 p-2'>ID</th>
               <th className='border border-gray-300 p-2'>Course Code</th>
               <th className='border border-gray=300 p-2'>Course Name</th>
+              {userInfo?.user?.user_type === "student" && (
+                <th className='border border-gray=300 p-2'>Exam Type</th>
+              )}
               <th className='border border-gray-300 p-2'>Semester</th>
             </tr>
           </thead>
@@ -97,6 +112,11 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>{index + 1}</td>
                   <td className='border border-gray-300 p-2'>{course_code}</td>
                   <td className='border border-gray-300 p-2'>{course_name}</td>
+                  {userInfo?.user?.user_type === "student" && (
+                    <td className='border border-gray-300 p-2 capitalize'>
+                      {course?.exam_type}
+                    </td>
+                  )}
                   <td className='border border-gray-300 p-2 capitalize'>
                     {semester}
                   </td>

@@ -5,6 +5,7 @@ const initialState = {
   error: null,
   course_created: false,
   courses: [],
+  classList: {},
   userCourses: [],
   assigned: false,
   courseDelete: false,
@@ -63,6 +64,10 @@ export const courseSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    getClassListSuccess: (state, action) => {
+      state.loading = false;
+      state.classList = action.payload;
+    },
     assignLecturerCourseSuccess: (state) => {
       state.loading = false;
       state.assigned = true;
@@ -94,7 +99,8 @@ export const {
   actionFail,
   assignLecturerCourseSuccess,
   getLecturerCoursesSuccess,
-  resetCourseState
+  resetCourseState,
+  getClassListSuccess
 } = courseSlice.actions;
 
 export default courseSlice.reducer;

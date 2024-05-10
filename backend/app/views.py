@@ -337,16 +337,19 @@ def get_course_students(request):
             ]
         }
     """
+    user = request.user
     course_code = request.data.get('course_code')
-    semester_id = request.data.get('semester_id')
+    teaching = Teaching.objects.filter(lecturer__user__id=user.id, course__course_code=course_code)[0]
+
     # Retrieve enrollments for the specified course and semester
     enrollments = Enrollment.objects.filter(
-        course_code__course_code=course_code, semester_id=semester_id)
+        course_code__course_code=course_code, semester__id=teaching.semester.id)
+
 
     # Extract student details from enrollments
     students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name, 'coursework_marks': enrollment.coursework_marks if enrollment.result_permission.marks_published else None, 'exam_marks': enrollment.exam_marks if enrollment.result_permission.marks_published else None, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
-    return Response({'course': course_code, 'semester': semester_id, 'students': students}, status=status.HTTP_200_OK)
+    return Response({'course': course_code, 'students': students}, status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -435,7 +438,7 @@ def get_student_courses(request):
 
     # Extract student details from enrollments
     courses = [{'enrollment_id': enrollment.id, 'course_code': enrollment.course_code.course_code, 'course_name': enrollment.course_code.course_name,
-                'exam_type': enrollment.exam_type} for enrollment in enrollments]
+                'exam_type': enrollment.exam_type, "semester": enrollment.semester.id} for enrollment in enrollments]
 
     return Response(courses, status=status.HTTP_200_OK)
 

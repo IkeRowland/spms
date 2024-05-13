@@ -114,7 +114,7 @@ def get_lecturers(request):
     if request.method == 'GET':
         lecturers = Lecturer.objects.all()
         users = [{'lecturer_id': lecturer.id, 'user_id': lecturer.user.id, 'staff_no': lecturer.staff_no,
-                  'full_name': lecturer.user.username, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
+                  'full_name': lecturer.user.full_name, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
         return Response(users, status=status.HTTP_200_OK)
     return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -638,7 +638,6 @@ def get_lecturer_courses(request):
 
 # Get course lecturers
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_courses_lecturers(request):
@@ -709,8 +708,6 @@ def admin_get_lecturer_courses(request, lecturer_id):
     return Response({"message": "Invalid request method!"}, status=status.HTTP_403_BAD_REQUEST)
 
 # Admin get lecturer details
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_get_lecturer_details(request, lecturer_id):

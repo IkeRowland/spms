@@ -378,8 +378,8 @@ export const publishResults = (courseData) => async (dispatch, getState) => {
         "Content-Type": "application/json"
       },
     };
-    await axios.patch(`${BASE_URL}/courses/results/publish/`, courseData, config);
-    dispatch(publishResultSuccess());
+    const {data} = await axios.patch(`${BASE_URL}/courses/results/publish/`, courseData, config);
+    dispatch(publishResultSuccess(data?.message));
   } catch (err) {
     console.log(err)
     const errMsg =

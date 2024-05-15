@@ -8,16 +8,17 @@ import {
   publishResults,
 } from "../redux/actions/courseActions";
 import Message from "../components/Message";
-import { resetState } from "../redux/slices/userSlices";
 import { getStudentResults } from "../redux/actions/userActions";
+import { resetCourseState } from "../redux/slices/courseSlice";
 
 const ResultPage = () => {
   const dispatch = useDispatch();
   const { myCourses } = useSelector((state) => state.user);
-  const { classList, saving, error, published, saved } = useSelector((state) => state.course);
+  const { classList, loading, saving, error, published } = useSelector((state) => state.course);
   const { userInfo, myResults } = useSelector((state) => state.user);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [enrollments, setEnrollments] = useState([]);
+  const [publishSuccess, setPublishSuccess] = useState(null);
 
   // Downloading class List
   const fetchClassList = () => {
@@ -79,6 +80,11 @@ const ResultPage = () => {
     dispatch(publishResults({ course_code: classList?.course }));
   };
 
+  const closePublishSuccess = () => {
+    dispatch(resetCourseState());
+    setPublishSuccess(null);
+  }
+
   useEffect(() => {
     const newTimeoutId = setTimeout(() => {
       dispatch(autoSaveMarks({ enrollments }));
@@ -94,7 +100,23 @@ const ResultPage = () => {
     }
   }, [dispatch, userInfo])
 
-  console.log(myResults)
+  useEffect(() => {
+    if (published){
+      setPublishSuccess(published);
+    }
+  }, [published])
+
+  useEffect(() => {
+    if (publishSuccess){
+      const interval = setInterval(() => {
+        dispatch(resetCourseState());
+        setPublishSuccess(null);
+      }, 5000)
+
+      return () => clearInterval(interval);
+    }
+  }, [dispatch, publishSuccess])
+
   return (
     <>
       {/* For the Lecturer */}
@@ -138,7 +160,7 @@ const ResultPage = () => {
                   Download Class List
                 </button>
               )}
-              {((classList && !classList?.published) || saved) && (
+              {classList?.students?.length > 0  && (
                 <button
                   type='button'
                   className='bg-green-600 px-4 py-1 text-white'
@@ -164,9 +186,12 @@ const ResultPage = () => {
             >
               Changes not saved! check your internet...
             </p>
-            {published && (
-              <Message variant='success' onClose={() => dispatch(resetState())}>
-                Results published!
+            {
+              loading && <p className="text-gray-600">Loading...</p>
+            }
+            {publishSuccess && (
+              <Message variant='success' onClose={closePublishSuccess}>
+                {publishSuccess}
               </Message>
             )}
             <table className='w-max text-gray-600 border border-collapse border-gray-300'>
@@ -280,7 +305,6 @@ const ResultPage = () => {
                     courses: Object.values(courses),
                   })
                 ).map((item) => {
-                  console.log(item);
                   return (
                     <tbody key={item.id}>
                       <tr className='border border-gray-300 '>

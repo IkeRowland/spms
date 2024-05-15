@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import get_object_or_404
-from .helpers import generate_random_password, send_password_email
+from .helpers import generate_random_password, send_password_email, send_results_notification
 from django.db.models import Count, Avg
 import json
 from .serializers import StudentSerializer, LecturerSerializer, CustomUserSerializer, CourseSerializer, SemesterSerializer, EnrollmentSerializer, ResultPermissionSerializer
@@ -417,6 +417,7 @@ def publish_results(request):
         course_code = request.data.get('course_code')
         teaching = Teaching.objects.filter(
             lecturer__user__id=user.id, course__course_code=course_code)[0]
+        emails = []
 
         # Retrieve enrollments for the specified course and semester
         enrollments = Enrollment.objects.filter(
@@ -447,6 +448,7 @@ def publish_results(request):
                     enrollment = Enrollment.objects.get(id=enrollment.id)
                     enrollment.grade = grade
                     enrollment.score = total_marks
+                    emails.append(enrollment.student.user.email)
                     enrollment.save()
                 except Enrollment.DoesNotExist:
                     pass
@@ -454,7 +456,8 @@ def publish_results(request):
             course__course_code=course_code)
         result_permission.marks_published = True
         result_permission.save()
-        return Response({"message": "Results published successfully"}, status=status.HTTP_200_OK)
+        send_results_notification(emails)
+        return Response({"message": "Results has been published successfully! Each student will be notified of the updates via their emails."}, status=status.HTTP_200_OK)
 
 
 # Get student courses

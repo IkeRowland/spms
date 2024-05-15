@@ -11,7 +11,7 @@ import Message from "./Message";
 
 const ExcelImport = () => {
   const dispatch = useDispatch();
-  const [students, setStudents] = useState([]);
+  const [file, setFile] = useState('');
   const [fileErr, setFileErr] = useState(null);
   const [showImportBtn, setShowImportBtn] = useState(false);
   const [successImport, setSuccessImport] = useState(null);
@@ -25,38 +25,37 @@ const ExcelImport = () => {
   } = useSelector((state) => state.user);
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const studentData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      // Assuming the Excel file has columns: REG NO, FULL NAME, INDEX NO, EMAIL, CONTACT, YEAR JOINED, FACULTY, COURSE
-      const students = studentData.slice(1).map((row) => ({
-        reg_no: row[0],
-        full_name: row[1],
-        index_no: row[2],
-        email: row[3],
-        contact: row[4],
-        year_joined: row[5],
-        user_type: "student",
-      }));
-
-      setStudents(students);
-    };
-
-    reader.readAsArrayBuffer(file);
+    setFile(e.target.files[0])
   };
 
   const uploadExcelFile = () => {
-    if (students.length === 0) {
+    if (file === '') {
       setFileErr("Please choose an excel file to upload!");
     } else {
-      dispatch(importStudents(students));
+      const reader = new FileReader();
+
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const studentData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        // Assuming the Excel file has columns: REG NO, FULL NAME, INDEX NO, EMAIL, CONTACT, YEAR JOINED, FACULTY, COURSE
+        const students = studentData.slice(1).map((row) => ({
+          reg_no: row[0],
+          full_name: row[1],
+          index_no: row[2],
+          email: row[3],
+          contact: row[4],
+          year_joined: row[5],
+          user_type: "student",
+        })).filter((student) => student.reg_no);
+
+        dispatch(importStudents(students));
+      };
+
+      reader.readAsArrayBuffer(file);
     }
   };
 

@@ -13,5 +13,13 @@ def send_password_email(email, password):
     """Send password to the lecturer's email."""
     subject = 'Initial SPMS Login Credentials'
     message = f"You have been added as a Lecturer in the SPMS Portal. Use the email: {email} and password: {password} as your initial login credential for spms. Please don't forget to change this password."
-    from_email = 'your@email.com'  # Change this to your email address
+    from_email = ''
     send_mail(subject, message, from_email, [email])
+
+
+def send_results_notification(emailList):
+    """Notify students when there are Updates on Results."""
+    subject = 'SPMS Results Updates'
+    message = f"There has been some updates on the portal! Please be sure to check..."
+    from_email = ''
+    send_mail(subject, message, from_email, emailList)

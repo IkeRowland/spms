@@ -10,7 +10,7 @@ const initialState = {
   userCourses: [],
   assigned: false,
   courseDelete: false,
-  published: false,
+  published: null,
   saved: false,
 };
 
@@ -62,7 +62,7 @@ export const courseSlice = createSlice({
       state.error = false;
       state.success = false;
       state.assigned = false;
-      state.published = false;
+      state.published = null;
     },
     actionFail: (state, action) => {
       state.loading = false;
@@ -80,10 +80,9 @@ export const courseSlice = createSlice({
       state.loading = false;
       state.userCourses = action.payload;
     },
-    publishResultSuccess: (state) => {
+    publishResultSuccess: (state, action) => {
       state.loading = false;
-      state.published = true;
-      state.saved = false;
+      state.published = action.payload;
     },
     savingStart: (state) => {
       state.saving = true;
@@ -102,7 +101,7 @@ export const courseSlice = createSlice({
       state.error = null;
       state.courseDelete = false;
       state.enrolled = false;
-      state.published = false;
+      state.published = null;
     },
   },
 });

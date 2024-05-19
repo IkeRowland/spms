@@ -112,6 +112,17 @@ def get_lecturers(request):
     Admin get all Lecturer objects
     """
     if request.method == 'GET':
+        query_params = request.query_params
+        search_id = query_params.get('staffId')
+        if search_id:
+            lecturers = []
+            try:
+                lecturer = Lecturer.objects.get(staff_no=search_id)
+                lecturers.append({'lecturer_id': lecturer.id, 'user_id': lecturer.user.id, 'staff_no': lecturer.staff_no,
+                                 'full_name': lecturer.user.full_name, 'contact': lecturer.user.contact, 'email': lecturer.user.email})
+                return Response(lecturers, status=status.HTTP_200_OK)
+            except Lecturer.DoesNotExist:
+                return Response({"message": "No Lecturer matching the given STAFF ID!"}, status=status.HTTP_404_NOT_FOUND)
         lecturers = Lecturer.objects.all()
         users = [{'lecturer_id': lecturer.id, 'user_id': lecturer.user.id, 'staff_no': lecturer.staff_no,
                   'full_name': lecturer.user.full_name, 'contact': lecturer.user.contact, 'email': lecturer.user.email} for lecturer in lecturers]
@@ -125,6 +136,23 @@ def get_lecturers(request):
 @permission_classes([IsAuthenticated])
 def get_students(request):
     if request.method == 'GET':
+        query_params = request.query_params
+        search_id = query_params.get('searchReg')
+        if search_id:
+            students = []
+            try:
+                student = Student.objects.get(reg_no=search_id)
+                user = CustomUser.objects.get(id=student.user_id)
+                student_serializer = StudentSerializer(student)
+                user_serializer = CustomUserSerializer(user)
+                student_info = {
+                    **student_serializer.data,
+                    **user_serializer.data
+                }
+                students.append(student_info)
+                return Response(students, status=status.HTTP_200_OK)
+            except Student.DoesNotExist:
+                return Response({"message": "No Student matching the given REG NO!"}, status=status.HTTP_404_NOT_FOUND)
         users_list = []
         students = Student.objects.all()
         for student in students:
@@ -456,7 +484,7 @@ def publish_results(request):
             course__course_code=course_code)
         result_permission.marks_published = True
         result_permission.save()
-        send_results_notification(emails)
+        send_results_notification(emails, result_permission.course.course_names)
         return Response({"message": "Results has been published successfully! Each student will be notified of the updates via their emails."}, status=status.HTTP_200_OK)
 
 
@@ -496,12 +524,15 @@ def get_student_results(request):
 
     # Iterate over the enrollments and organize courses by semester
     for enrollment in enrollments:
-        if enrollment is not None:
+        if enrollment is not None and enrollment.result_permission.marks_published:
             semester_id = enrollment.semester.id
             course_details = {
                 'enrollment_id': enrollment.id,
                 'course_code': enrollment.course_code.course_code,
                 'course_name': enrollment.course_code.course_name,
+                'coursework_marks': enrollment.coursework_marks,
+                'exam_marks': enrollment.exam_marks,
+                'score': enrollment.score,
                 'grade': enrollment.grade
             }
             # Initialize the semester entry in the dictionary if not present

@@ -15,6 +15,7 @@ const ExcelImport = () => {
   const [fileErr, setFileErr] = useState(null);
   const [showImportBtn, setShowImportBtn] = useState(false);
   const [successImport, setSuccessImport] = useState(null);
+  const [searchReg, setSearchReg] = useState('');
 
   const {
     loading,
@@ -63,6 +64,11 @@ const ExcelImport = () => {
     alert("Are you sure you want to delete the user?");
     dispatch(deleteUser(userId));
   };
+
+  const handleSearchStudentByReg = (e) => {
+    e.preventDefault();
+    dispatch(listStudents(searchReg));
+  }
 
   useEffect(() => {
     if (updateInfo?.total_items) {
@@ -143,6 +149,10 @@ const ExcelImport = () => {
           </div>
         )}
       </div>
+      <form className="w-full flex justify-end gap-1 my-2" onSubmit={handleSearchStudentByReg}>
+        <input type="text" className="border border-gray-300 rounded p-2 text-gray-600 focus:outline-amber-400" placeholder="Search by REG NO" value={searchReg} onChange={(e) => setSearchReg(e.target.value)} />
+        <button type="submit" className="bg-gray-900 px-4 py-1 rounded text-white">Search</button>
+      </form>
       <section className='w-full overflow-x-auto'>
         {loading && <p>Loading...</p>}
         {error && (

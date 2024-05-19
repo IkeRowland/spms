@@ -24,7 +24,7 @@ const Tobbar = () => {
           )}
           {userInfo?.user?.user_type === "lecturer" && (
             <div className='flex gap-3 items-center'>
-              <h6 className='capitalize py-1'>{userInfo?.user?.username}</h6>
+              <h6 className='capitalize py-1'>{userInfo?.user?.full_name}</h6>
               <span className='bg-gray-900 text-white px-2 py-1 rounded'>
                 Lecturer
               </span>

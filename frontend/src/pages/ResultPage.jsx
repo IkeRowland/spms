@@ -160,7 +160,7 @@ const ResultPage = () => {
                   Download Class List
                 </button>
               )}
-              {classList?.students?.length > 0  && (
+              {classList?.students?.length > 0 && (
                 <button
                   type='button'
                   className='bg-green-600 px-4 py-1 text-white'
@@ -186,9 +186,7 @@ const ResultPage = () => {
             >
               Changes not saved! check your internet...
             </p>
-            {
-              loading && <p className="text-gray-600">Loading...</p>
-            }
+            {loading && <p className='text-gray-600'>Loading...</p>}
             {publishSuccess && (
               <Message variant='success' onClose={closePublishSuccess}>
                 {publishSuccess}
@@ -279,7 +277,9 @@ const ResultPage = () => {
       {userInfo?.user?.user_type === "student" && (
         <section className='bg-slate-100 shadow-sm p-4'>
           <div className='flex flex-col items-center bg-white p-4'>
-            <h3 className='text-gray-600 uppercase'>{userInfo?.user?.full_name}</h3>
+            <h3 className='text-gray-600 uppercase'>
+              {userInfo?.user?.full_name}
+            </h3>
             <h6 className='text-gray-600 uppercase'>FACULTY OF EDUCATION</h6>
             <h6 className='text-gray-600 uppercase'>
               Bachelor of Education (ICT)
@@ -294,40 +294,54 @@ const ResultPage = () => {
                   <th className='border border-gray-300 p-2 text-left'>
                     Course Name
                   </th>
+                  <th className='border border-gray-300 p-2 text-left'>CAT</th>
+                  <th className='border border-gray-300 p-2 text-left'>Exam</th>
+                  <th className='border border-gray-300 p-2 text-left'>
+                    Total Marks
+                  </th>
                   <th className='border border-gray-300 p-2 text-left'>
                     Grade
                   </th>
                 </tr>
               </thead>
-                {Object.entries(myResults).map(
-                  ([semesterId, courses]) => ({
-                    id: semesterId,
-                    courses: Object.values(courses),
-                  })
-                ).map((item) => {
+              {Object.entries(myResults)
+                .map(([semesterId, courses]) => ({
+                  id: semesterId,
+                  courses: Object.values(courses),
+                }))
+                .map((item) => {
                   return (
                     <tbody key={item.id}>
                       <tr className='border border-gray-300 '>
                         <td className='p-2'>{item.id}</td>
                       </tr>
-                      {
-                        item.courses.map((course, index) => {
-                          return (
-                            <tr key={course.enrollment_id}>
-                              <td className='border border-gray-300 p-2'>{index + 1}</td>
-                              <td className='border border-gray-300 p-2'>
-                                {course.course_code}
-                              </td>
-                              <td className='border border-gray-300 p-2'>
-                                {course.course_name}
-                              </td>
-                              <td className='border border-gray-300 p-2'>
-                                {course.grade}
-                              </td>
-                            </tr>
-                          );
-                        })
-                      }
+                      {item.courses.map((course, index) => {
+                        return (
+                          <tr key={course.enrollment_id}>
+                            <td className='border border-gray-300 p-2'>
+                              {index + 1}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                              {course.course_code}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                              {course.course_name}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                              {course.coursework_marks}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                              {course.exam_marks}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                              {course.score}
+                            </td>
+                            <td className='border border-gray-300 p-2'>
+                              {course.grade}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   );
                 })}

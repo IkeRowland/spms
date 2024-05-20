@@ -130,7 +130,7 @@ export const importLecturers =
   };
 
 // LIST STUDENTS
-export const listStudents = () => async (dispatch, getState) => {
+export const listStudents = (searchReg='') => async (dispatch, getState) => {
   try {
     dispatch(getStudentsStart());
 
@@ -145,7 +145,7 @@ export const listStudents = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(`${BASE_URL}/users/students/`, config);
+    const { data } = await axios.get(`${BASE_URL}/users/students/?searchReg=${searchReg}`, config);
     dispatch(getStudentsSuccess(data));
   } catch (err) {
     const errMsg =
@@ -166,7 +166,7 @@ export const listStudents = () => async (dispatch, getState) => {
 };
 
 // List lecturers
-export const listLecturers = () => async (dispatch, getState) => {
+export const listLecturers = (staffId='') => async (dispatch, getState) => {
   try {
     dispatch(actionStart());
 
@@ -181,7 +181,7 @@ export const listLecturers = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(`${BASE_URL}/users/lecturers/`, config);
+    const { data } = await axios.get(`${BASE_URL}/users/lecturers/?staffId=${staffId}`, config);
     dispatch(getLecturesSuccess(data));
   } catch (err) {
     const errMsg =

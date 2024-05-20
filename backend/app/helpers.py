@@ -17,9 +17,9 @@ def send_password_email(email, password):
     send_mail(subject, message, from_email, [email])
 
 
-def send_results_notification(emailList):
+def send_results_notification(emailList, course_name):
     """Notify students when there are Updates on Results."""
     subject = 'SPMS Results Updates'
-    message = f"There has been some updates on the portal! Please be sure to check..."
+    message = f"{course_name} results has been updated. Please check the changes on your student's portal."
     from_email = ''
     send_mail(subject, message, from_email, emailList)

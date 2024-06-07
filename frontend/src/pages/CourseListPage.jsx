@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
-  deleteCourse,
   getCourses,
   getMyCourses,
 } from "../redux/actions/courseActions";
@@ -14,10 +13,6 @@ const CourseListPage = () => {
 
   const [formattedCourses, setFormattedCourses] = useState({});
 
-  const handleDeleteCourse = (courseId) => {
-    alert("Are you sure you want to delete the course!");
-    dispatch(deleteCourse(courseId));
-  };
 
   useEffect(() => {
     dispatch(getCourses());
@@ -132,7 +127,6 @@ const CourseListPage = () => {
               <th className='border border-gray-300 p-2'>#</th>
               <th className='border border-gray-300 p-2'>Course Code</th>
               <th className='border border-gray=300 p-2'>Course Name</th>
-              <th className='border border-gray=300 p-2'>Actions</th>
             </tr>
           </thead>
           <tbody className=''>
@@ -140,7 +134,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 1 SEMESTER 1</td>
-              <td></td>
             </tr>
             {formattedCourses.year_1?.sem_1?.map((course, index) => {
               return (
@@ -152,14 +145,6 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
                 </tr>
               );
             })}
@@ -167,7 +152,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 1 SEMESTER 2</td>
-              <td></td>
             </tr>
             {formattedCourses.year_1?.sem_2?.map((course, index) => {
               return (
@@ -179,14 +163,6 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
                 </tr>
               );
             })}
@@ -194,7 +170,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 2 SEMESTER 1</td>
-              <td></td>
             </tr>
             {formattedCourses.year_2?.sem_1?.map((course, index) => {
               return (
@@ -206,14 +181,7 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
+                 
                 </tr>
               );
             })}
@@ -221,7 +189,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 2 SEMESTER 2</td>
-              <td></td>
             </tr>
             {formattedCourses.year_2?.sem_2?.map((course, index) => {
               return (
@@ -233,14 +200,7 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
+                  
                 </tr>
               );
             })}
@@ -248,7 +208,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 3 SEMESTER 1</td>
-              <td></td>
             </tr>
             {formattedCourses.year_3?.sem_1?.map((course, index) => {
               return (
@@ -260,14 +219,7 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
+                 
                 </tr>
               );
             })}
@@ -275,7 +227,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 3 SEMESTER 2</td>
-              <td></td>
             </tr>
             {formattedCourses.year_3?.sem_2?.map((course, index) => {
               return (
@@ -287,14 +238,7 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
+                  
                 </tr>
               );
             })}
@@ -302,7 +246,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 4 SEMESTER 1</td>
-              <td></td>
             </tr>
             {formattedCourses.year_4?.sem_1?.map((course, index) => {
               return (
@@ -314,14 +257,7 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Drop Course
-                    </button>
-                  </td>
+                  
                 </tr>
               );
             })}
@@ -329,7 +265,6 @@ const CourseListPage = () => {
               <td></td>
               <td></td>
               <td className='px-2'>YEAR 4 SEMESTER 2</td>
-              <td></td>
             </tr>
             {formattedCourses.year_4?.sem_2?.map((course, index) => {
               return (
@@ -341,14 +276,7 @@ const CourseListPage = () => {
                   <td className='border border-gray-300 p-2'>
                     {course.course_name}
                   </td>
-                  <td className='border border-gray-300 p-2 flex gap-3'>
-                    <button
-                      className='bg-red-500 text-xs px-1 py-1 rounded text-white'
-                      onClick={() => handleDeleteCourse(course.course_code)}
-                    >
-                      Remove
-                    </button>
-                  </td>
+                  
                 </tr>
               );
             })}

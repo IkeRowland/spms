@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, IntegrityError
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -147,6 +148,19 @@ class Teaching(models.Model):
     
     class Meta:
         # Define unique constraint for lecturer and course combination
-        unique_together = ('lecturer', 'course')
+        unique_together = ('course', 'semester')
+    
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError as e:
+            if 'UNIQUE constraint' in str(e):
+                raise ValidationError(
+                    "This course is already assigned to another lecturer in the selected semester.")
+            else:
+                raise e  # Re-raise the error if it's not related to the unique constraint
+    
+    def __str__(self):
+        return f"{self.lecturer} - {self.course} - {self.semester}"
 
 

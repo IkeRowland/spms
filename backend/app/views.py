@@ -713,46 +713,59 @@ def get_courses_lecturers(request):
 # Admin assign lecturer courses
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.db.utils import IntegrityError
+from app.models import Lecturer, Course, Semester, Teaching
+from rest_framework.exceptions import ValidationError as DRFValidationError
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def allocate_lecturer_course(request, lecturer_id):
     """
-    Admin assign Lecturer a course
+    Admin assigns a course to a lecturer for a specific semester.
     """
-    if request.method == 'POST':
-        # Retrieve course_code and semester_id from request data
-        course_code = request.data.get('course_code')
-        semester_id = request.data.get('semester_id')
+    # Check for POST request
+    if request.method != 'POST':
+        return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            # Retrieve lecturer object
-            lecturer = Lecturer.objects.get(id=lecturer_id)
+    # Retrieve data from request
+    course_code = request.data.get('course_code')
+    semester_id = request.data.get('semester_id')
 
-            # Retrieve course and semester objects
-            course = Course.objects.get(course_code=course_code)
-            semester = Semester.objects.get(id=semester_id)
+    # Validate that both course_code and semester_id are provided
+    if not course_code or not semester_id:
+        return Response({'message': 'Both course_code and semester_id must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if the course is already assigned to the lecturer in the semester
-            existing_teaching = Teaching.objects.filter(
-                lecturer=lecturer, course=course, semester=semester).exists()
+    try:
+        # Retrieve lecturer, course, and semester objects
+        lecturer = Lecturer.objects.get(id=lecturer_id)
+        course = Course.objects.get(course_code=course_code)
+        semester = Semester.objects.get(id=semester_id)
 
-            if existing_teaching:
-                return Response({'error': 'This course is already assigned to the lecturer in the selected semester.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Check if the course is already assigned to the lecturer in the semester
+        if Teaching.objects.filter(lecturer=lecturer, course=course, semester=semester).exists():
+            return Response({'message': 'This course is already assigned to the lecturer in the selected semester.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Create Teaching object to assign the course to the lecturer
-            teaching = Teaching.objects.create(
-                lecturer=lecturer, course=course, semester=semester)
+        # Assign the course to the lecturer for the semester
+        teaching = Teaching.objects.create(lecturer=lecturer, course=course, semester=semester)
 
-            return Response({'message': f'Course {course_code} assigned to lecturer {lecturer_id} for semester {semester_id}.'}, status=status.HTTP_201_CREATED)
+        return Response({'message': f'Course {course_code} assigned to lecturer {lecturer_id} for semester {semester_id}.'}, status=status.HTTP_201_CREATED)
 
-        except Lecturer.DoesNotExist:
-            return Response({'message': 'Lecturer not found.'}, status=status.HTTP_404_NOT_FOUND)
-        except Course.DoesNotExist:
-            return Response({'message': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
-        except Semester.DoesNotExist:
-            return Response({'message': 'Semester not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    return Response({"message": "Invalid request method!"}, status=status.HTTP_400_BAD_REQUEST)
+    except Lecturer.DoesNotExist:
+        return Response({'message': 'Lecturer not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Course.DoesNotExist:
+        return Response({'message': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Semester.DoesNotExist:
+        return Response({'message': 'Semester not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except IntegrityError:
+        # Catch unique constraint violations or other database integrity errors
+        return Response({'message': 'This course is already assigned to another lecturer in the selected semester.'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        # Generic exception handling for unexpected errors
+        return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # Admin get lecturer courses

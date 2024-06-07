@@ -394,10 +394,17 @@ def get_course_students(request):
         course_code__course_code=course_code, semester__id=teaching.semester.id)
     is_published = ResultPermission.objects.get(
         course__course_code=course_code).marks_published
-
-    # Extract student details from enrollments
-    students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name,
-                 'coursework_marks': enrollment.coursework_marks, 'exam_marks': enrollment.exam_marks, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
+    
+    students = []
+    
+    query_params = request.query_params
+    search_id = query_params.get('searchId')
+    if search_id:
+        students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name,
+                     'coursework_marks': enrollment.coursework_marks, 'exam_marks': enrollment.exam_marks, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments if enrollment.student.reg_no == search_id]
+    else:
+        students = [{'student_id': enrollment.student.id, 'enrollment_id': enrollment.id, 'reg_no': enrollment.student.reg_no, 'student_name': enrollment.student.user.full_name,
+                     'coursework_marks': enrollment.coursework_marks, 'exam_marks': enrollment.exam_marks, 'grade': enrollment.grade if enrollment.result_permission.marks_published else None} for enrollment in enrollments]
 
     return Response({'course': course_code, 'students': students, 'published': is_published}, status=status.HTTP_200_OK)
 
@@ -515,6 +522,24 @@ def get_student_results(request):
     """
     Get current user courses
     """
+    query_params = request.query_params
+    search_id = query_params.get('searchId')
+    if search_id:
+        students = []
+        try:
+            student = Student.objects.get(reg_no=search_id)
+            user = CustomUser.objects.get(id=student.user_id)
+            student_serializer = StudentSerializer(student)
+            user_serializer = CustomUserSerializer(user)
+            student_info = {
+                **student_serializer.data,
+                    **user_serializer.data
+            }
+            students.append(student_info)
+            return Response(students, status=status.HTTP_200_OK)
+        except Student.DoesNotExist:
+            return Response({"message": "No Student matching the given REG NO!"}, status=status.HTTP_404_NOT_FOUND)
+    users_list = []
     user = request.user
     enrollments = Enrollment.objects.filter(
         student__user__id=user.id, result_permission__marks_published=True)

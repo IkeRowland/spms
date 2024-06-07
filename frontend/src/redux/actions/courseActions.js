@@ -299,7 +299,7 @@ export const getLecturerCourses =
     }
   };
 
-export const getClassList = (obj) =>  async (dispatch, getState) => {
+export const getClassList = (obj, searchId='') =>  async (dispatch, getState) => {
   try {
     dispatch(actionStart());
     const {
@@ -311,7 +311,7 @@ export const getClassList = (obj) =>  async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo?.token?.access}`,
       },
     };
-    const { data } = await axios.post(`${BASE_URL}/courses/students/`, obj, config);
+    const { data } = await axios.post(`${BASE_URL}/courses/students/?searchId=${searchId}`, obj, config);
     dispatch(getClassListSuccess(data));
   } catch (err) {
     const errMsg =

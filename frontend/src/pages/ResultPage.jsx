@@ -19,6 +19,8 @@ const ResultPage = () => {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [enrollments, setEnrollments] = useState([]);
   const [publishSuccess, setPublishSuccess] = useState(null);
+  const [searchId, setSearchId] = useState("");
+
 
   // Downloading class List
   const fetchClassList = () => {
@@ -55,6 +57,11 @@ const ResultPage = () => {
       document.body.removeChild(link);
     }
   };
+
+  const handleSearchStudentByStaffId = (e) => {
+    e.preventDefault();
+    dispatch(getClassList({ course_code: selectedCourse }, searchId));
+  }
 
   useEffect(() => {
     dispatch(getMyCourses("lecturer"));
@@ -122,56 +129,88 @@ const ResultPage = () => {
       {/* For the Lecturer */}
       {userInfo?.user?.user_type === "lecturer" && (
         <section className='bg-slate-100 shadow-sm p-4'>
-          <div className='flex justify-between items-center'>
-            <h3 className='mb-2 text-xl font-semibold'>Results</h3>
-            <div className='flex gap-3 items-center my-2'>
-              <h6 className='text-gray-900'>Select Course:</h6>
-              <select
-                className='border focus:outline-none p-2'
-                onChange={(e) => setSelectedCourse(e.target.value)}
+          <section className='w-full bg-white px-4 '>
+            <div className='border-b flex justify-between items-center'>
+              <h3 className='my-auto text-xl font-semibold'>Results</h3>
+              <div className='flex gap-3 items-center'>
+                <div className='flex gap-3 items-center my-2'>
+                  <h6 className='text-gray-900'>Select Course:</h6>
+                  <select
+                    className='border focus:outline-none p-2'
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                  >
+                    <option value=''>--Select Course--</option>
+                    {myCourses.map((course) => {
+                      return (
+                        <option
+                          key={course.course_id}
+                          value={course.course_code}
+                        >
+                          {course.course_code} - {course.course_name}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  onClick={fetchClassList}
+                >
+                  Get Class List
+                </button>
+              </div>
+            </div>
+            <div className='my-3 border-b flex justify-between items-center'>
+              <form
+                className='flex justify-end gap-1 my-2'
+                onSubmit={handleSearchStudentByStaffId}
               >
-                <option value=''>--Select Course--</option>
-                {myCourses.map((course) => {
-                  return (
-                    <option key={course.course_id} value={course.course_code}>
-                      {course.course_code} - {course.course_name}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <button
-              className='bg-gray-900 text-white px-4 py-2 rounded'
-              onClick={fetchClassList}
-            >
-              Get Class List
-            </button>
-          </div>
-          {classList && (
-            <div className='flex md:justify-end gap-3 items-end my-3'>
-              <h3 className='text-xl uppercase text-gray-600'>
-                {classList?.course}
-              </h3>
-              {classList?.students?.length > 0 && (
+                <input
+                  type='text'
+                  className='border border-gray-300 rounded p-2 text-gray-600 focus:outline-amber-400'
+                  placeholder='Search by REG NO'
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                />
                 <button
-                  className='bg-green-500 px-4 py-1 text-white'
-                  onClick={handleDownload}
+                  type='submit'
+                  className='bg-gray-900 px-4 py-1 rounded text-white'
                 >
-                  Download Class List
+                  Search
                 </button>
-              )}
-              {classList?.students?.length > 0 && (
-                <button
-                  type='button'
-                  className='bg-green-600 px-4 py-1 text-white'
-                  onClick={handlePublishResults}
-                >
-                  Publish Results
-                </button>
+              </form>
+              {classList && (
+                <div className='flex md:justify-end gap-3 items-end my-3'>
+                  <h3 className='text-xl uppercase text-gray-600'>
+                    {classList?.course}
+                  </h3>
+                  {classList?.students?.length > 0 && (
+                    <>
+                      <button
+                        className='bg-gray-800 px-4 py-1 text-white'
+                        onClick={handleDownload}
+                      >
+                        Download Class List
+                      </button>
+                      <button
+                        type='button'
+                        className='bg-green-600 px-4 py-1 text-white'
+                        onClick={() => dispatch(autoSaveMarks({ enrollments }))}
+                      >
+                        Save Results
+                      </button>
+                      <button
+                        type='button'
+                        className='bg-orange-800 px-4 py-1 text-white'
+                        onClick={handlePublishResults}
+                      >
+                        Publish Results
+                      </button>
+                    </>
+                  )}
+                </div>
               )}
             </div>
-          )}
-          <section className='w-full overflow-x-auto bg-white overflow-x-auto p-4'>
             <p
               className={`text-green-600 text-xs ${
                 saving ? "visible" : "invisible"
@@ -192,6 +231,8 @@ const ResultPage = () => {
                 {publishSuccess}
               </Message>
             )}
+          </section>
+          <section className='w-full overflow-x-auto bg-white overflow-x-auto p-4'>
             <table className='w-max text-gray-600 border border-collapse border-gray-300'>
               <thead>
                 <tr>

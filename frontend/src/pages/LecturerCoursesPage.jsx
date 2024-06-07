@@ -32,6 +32,7 @@ const LecturerCoursesPage = () => {
                 <th className='border border-gray-300 p-2'>#</th>
                 <th className='border border-gray-300 p-2'>Course Code</th>
                 <th className='border border-gray-300 p-2'>Course Name</th>
+                <th className='border border-gray-300 p-2'>Year</th>
                 <th className='border border-gray-300 p-2'>Semester</th>
               </tr>
             </thead>
@@ -48,6 +49,9 @@ const LecturerCoursesPage = () => {
                     </td>
                     <td className='border border-gray-300 p-2'>
                       {course.course_name}
+                    </td>
+                    <td className='border border-gray-300 p-2'>
+                      {course.year}
                     </td>
                     <td className='border border-gray-300 p-2'>
                       {course.semester}

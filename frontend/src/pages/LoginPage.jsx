@@ -8,6 +8,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [regNo, setRegNo] = useState("");
   const [password, setPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isStudent, setIsStudent] = useState(true);
+  const [isLecturer, setIsLecturer] = useState(false);
 
   const {loading, error, userInfo} = useSelector((state) => state.user);
 
@@ -16,6 +19,22 @@ const LoginPage = () => {
     dispatch(login({ username: regNo, password }));
     setRegNo('');
     setPassword('');
+  }
+
+  const handleToggle = (type) => {
+    if (type === 'admin'){
+      setIsLecturer(false);
+      setIsStudent(false);
+      setIsAdmin(true);
+    } else if (type === 'lecturer'){
+      setIsAdmin(false);
+      setIsStudent(false);
+      setIsLecturer(true);
+    } else if (type === 'student'){
+      setIsAdmin(false);
+      setIsLecturer(false);
+      setIsStudent(true);
+    }
   }
 
   useEffect(() => {
@@ -41,12 +60,48 @@ const LoginPage = () => {
           together.
         </p>
       </div>
-      <div className='col-span-1 flex justify-center items-center'>
+      <div className='col-span-1 flex flex-col justify-center items-center'>
         <form
           className='md:w-3/5 h-max flex flex-col flex-wrap p-4'
           onSubmit={handleSubmit}
         >
-          <h4 className='my-5 font-semibold text-3xl text-gray-900 capitalize'>
+          <div className='flex gap-1'>
+            <button
+              type='button'
+              className={`text-black border rounded-full px-6 py-2 ${
+                isStudent && "bg-green-500 text-white"
+              }`}
+              onClick={() => handleToggle("student")}
+            >
+              Student
+            </button>
+            <button
+              type='button'
+              className={`text-black border rounded-full px-6 py-2 ${
+                isLecturer && "bg-green-500 text-white"
+              }`}
+              onClick={() => handleToggle("lecturer")}
+            >
+              Lecturer
+            </button>
+            <button
+              type='button'
+              className={`text-black border rounded-full px-6 py-2 ${
+                isAdmin && "bg-green-500 text-white"
+              }`}
+              onClick={() => handleToggle("admin")}
+            >
+              Admin
+            </button>
+          </div>
+          <h4 className='mt-5 mb-3 font-semibold text-3xl text-gray-900 capitalize'>
+            <span className='text-md text-green-500 font-normal'>
+              Hi{" "}
+              {(isAdmin && "Admin") ||
+                (isLecturer && "Lecturer") ||
+                (isStudent && "Student")}
+              ,{" "}
+            </span>
             Welcome back to SPMS
           </h4>
           {loading && <p>Loading....</p>}
@@ -55,22 +110,21 @@ const LoginPage = () => {
           )}
           <div className='mb-2 flex flex-col'>
             <label className='py-1'>
-              {userInfo?.user?.user_type === "student"
-                ? "Reg No"
-                : "Username"}
+              {(isAdmin && "Username") ||
+                (isStudent && "Reg No") ||
+                (isLecturer && "Staff No")}
             </label>
             <input
               type='text'
               placeholder={
-                userInfo?.user?.user_type === "student"
-                  ? "E46/6272/2021"
-                  : "username"
+                (isAdmin && "Username") ||
+                (isStudent && "Reg No") ||
+                (isLecturer && "Staff No")
               }
               className='border px-4 py-2 rounded-lg text-gray-600 focus:outline-amber-400'
               onChange={(e) => setRegNo(e.target.value)}
               value={regNo}
             />
-            <p className="text-amber-500 text-xs py-1">Use STAFF NO for lecturer, Reg No for student!</p>
           </div>
           <div className='mb-2 flex flex-col'>
             <label className='py-1'>Password</label>
